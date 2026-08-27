@@ -7,6 +7,19 @@
 - **Coder:** implementa exclusivamente el plan aprobado.
 - **Tester:** crea y ejecuta las pruebas previstas, y reporta resultados reproducibles.
 
+## Principios de diseño
+
+- Todo el código debe aplicar SOLID:
+  - **SRP:** cada clase resuelve una única responsabilidad; un Action o Service por caso de uso.
+  - **OCP:** las variantes de descuento y estado se extienden con enums y contratos, sin hacer crecer condicionales por tipo.
+  - **LSP:** cualquier implementación de un contrato debe ser sustituible sin alterar el comportamiento esperado por quien lo consume.
+  - **ISP:** interfaces pequeñas y específicas en lugar de una interfaz de servicio general.
+  - **DIP:** los casos de uso dependen de abstracciones, no de implementaciones concretas.
+- **Inyección de dependencias obligatoria, sobre todo en el backend:** las dependencias se declaran en el constructor y las resuelve el contenedor de servicios de Laravel.
+- **Prohibido** usar clases estáticas, métodos estáticos o helpers globales para lógica de negocio: impiden sustituir colaboradores en las pruebas y ocultan el acoplamiento real de cada clase.
+- Controladores delgados, validación de entrada en Form Requests y un caso de uso por Action/Service.
+- Se prefiere depender de interfaces cuando haya más de una implementación o cuando una prueba necesite un doble.
+
 ## Flujo obligatorio
 
 1. El orquestador analiza el requisito y el código relacionado.

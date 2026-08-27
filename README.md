@@ -4,15 +4,51 @@ Aplicacion web para gestionar promociones de productos y categorias, con reglas 
 
 ## Stack
 
-- Backend: Laravel 13, PHP 8.3 y API HTTP.
+- Backend: Laravel 13, PHP 8.4 y API HTTP.
 - Persistencia: PostgreSQL.
 - Frontend: React 19, TypeScript y Vite.
 
 ## Prerrequisitos
 
-- PHP 8.3+, Composer y una instancia local de PostgreSQL.
+- Docker y Docker Compose, para levantar el stack completo de forma reproducible.
+- Para desarrollo local sin contenedores: PHP 8.4+, Composer y una instancia local de PostgreSQL. El `composer.lock` fija dependencias de Laravel 13 que arrastran Symfony 8.1 y exigen PHP 8.4.1 o superior, asi que `composer install` falla con PHP 8.3.
 - Node.js compatible con las versiones declaradas y pnpm o npm.
-- Docker Compose sera necesario cuando se complete la tarea 1.4. El repositorio aun no incluye un stack Docker ejecutable.
+
+## Ejecucion con Docker
+
+1. Copia `.env.example` a `.env` en la raiz del repositorio y ajusta solo los valores locales.
+2. Levanta el stack:
+
+```bash
+docker compose up --build
+```
+
+3. Para detener los contenedores conservando los datos:
+
+```bash
+docker compose down
+```
+
+4. Para detener los contenedores y borrar el volumen de datos de PostgreSQL:
+
+```bash
+docker compose down -v
+```
+
+URLs resultantes:
+
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8000
+- PostgreSQL: localhost:5432
+
+El servicio `backend` espera a que PostgreSQL supere su healthcheck, aplica las migraciones y expone la API. El servicio `frontend` sirve el build estatico de Vite mediante nginx.
+
+## Troubleshooting minimo
+
+- **Puertos ocupados:** ajusta `BACKEND_PORT`, `FRONTEND_PORT` o `POSTGRES_PORT` en el `.env` de la raiz y vuelve a ejecutar `docker compose up`.
+- **Cambiaste `VITE_API_URL`:** Vite incrusta esa variable en tiempo de construccion, asi que debes reconstruir la imagen con `docker compose build frontend` antes de volver a levantar el stack.
+- **El backend parece tardar en arrancar:** es esperado, no arranca hasta que el healthcheck de PostgreSQL pasa.
+- **Datos corruptos o migraciones en mal estado:** ejecuta `docker compose down -v` para borrar el volumen y levanta el stack de nuevo desde una base de datos vacia.
 
 ## Configuracion local
 
@@ -49,8 +85,6 @@ Frontend, desde `frontend/`:
 pnpm lint
 pnpm build
 ```
-
-Los comandos de Docker Compose se documentaran y validaran al completar la tarea 1.4.
 
 ## URLs locales
 
