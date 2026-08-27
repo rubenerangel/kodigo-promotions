@@ -25,6 +25,14 @@
 
 No se debe implementar antes de aprobar el plan. No se debe declarar terminado un cambio sin validaciones y aceptación final.
 
+## Pausa obligatoria por tarea
+
+- Implementar y validar una sola tarea de `tasks.md` por turno.
+- Después de cada tarea, el orquestador debe informar cambios realizados, archivos afectados, validaciones, commit creado, riesgos y trabajo pendiente.
+- El orquestador debe detenerse y solicitar confirmación explícita de Rubén antes de iniciar la siguiente tarea.
+- No encadenar tareas automáticamente aunque la siguiente parezca pequeña o dependiente.
+- Si la tarea falla, no iniciar otra: reportar el bloqueo y esperar instrucciones.
+
 ## Commits
 
 - Después de completar cada tarea del archivo `tasks.md`, ejecutar las validaciones definidas para esa tarea y crear un commit independiente.
