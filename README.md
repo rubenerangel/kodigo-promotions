@@ -79,10 +79,15 @@ php artisan test
 vendor/bin/pint
 ```
 
-La suite de pruebas se ejecuta contra PostgreSQL, no contra SQLite en memoria, porque el esquema depende de restricciones `CHECK` que SQLite no soporta. Requiere una base de datos `promotions_test` disponible. Para crearla con el PostgreSQL de Compose:
+La suite de pruebas se ejecuta contra PostgreSQL, no contra SQLite en memoria, porque el esquema depende de restricciones `CHECK` que SQLite no soporta. Requiere una base de datos `promotions_test`, que el contenedor de PostgreSQL **crea automaticamente** al inicializar un cluster nuevo, mediante el script `docker/postgres/init/01-create-test-db.sql`. Basta con levantar el servicio:
 
 ```bash
 docker compose up -d postgres
+```
+
+Ese script solo se ejecuta al inicializar el cluster, asi que un volumen `postgres-data` creado antes de que el script existiera no la tendra. En ese caso, crea la base a mano una sola vez:
+
+```bash
 docker compose exec postgres createdb -U postgres promotions_test
 ```
 

@@ -27,5 +27,10 @@ fi
 echo "[entrypoint] Running migrations..."
 php artisan migrate --force
 
+# Safe on every boot: the seeders use firstOrCreate, so repeated runs neither
+# duplicate the catalog nor consume id sequences.
+echo "[entrypoint] Seeding catalog..."
+php artisan db:seed --force
+
 echo "[entrypoint] Starting HTTP server on 0.0.0.0:8000"
 exec php artisan serve --host=0.0.0.0 --port=8000

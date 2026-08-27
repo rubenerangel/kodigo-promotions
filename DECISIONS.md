@@ -48,7 +48,9 @@
 - La imagen del backend usa PHP 8.4 porque el `composer.lock` de Laravel 13 arrastra Symfony 8.1, que exige `php >=8.4.1`; por coherencia, `composer.json` declara `"php": "^8.4"`.
 - PostgreSQL declara un healthcheck con `pg_isready`, y el arranque del backend queda condicionado a que ese healthcheck pase, para evitar fallos de conexion en el primer arranque.
 - La persistencia usa un volumen nombrado, de modo que `docker compose down` conserva los datos y `docker compose down -v` los descarta.
-- Las migraciones se ejecutan en el entrypoint del backend porque `migrate --force` es idempotente. Los seeders no se ejecutan automaticamente.
+- Las migraciones se ejecutan en el entrypoint del backend porque `migrate --force` es idempotente.
+- El catalogo de productos y categorias tambien se siembra en el arranque, con `db:seed --force` justo despues de migrar. Es seguro porque los seeders usan `firstOrCreate`: arranques repetidos no duplican filas ni consumen secuencias de id. El motivo es que el formulario de promociones necesita targets seleccionables; sin catalogo, un `docker compose up` desde volumen limpio deja la aplicacion inusable para quien la evalua.
+- La base `promotions_test` que consume la suite se crea mediante un script de inicializacion montado en `/docker-entrypoint-initdb.d` del contenedor de PostgreSQL. La imagen lo ejecuta solo al inicializar un cluster nuevo, de modo que un ciclo limpio (`down -v` y `up`) deja el entorno listo para ejecutar las pruebas sin pasos manuales.
 
 ### Frontend en Docker: artefacto estatico, no dev server
 
