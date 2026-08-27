@@ -58,6 +58,12 @@
 - *Beneficio:* imagen pequena sin Node en ejecucion, `tsc -b` actua como puerta de calidad del build, y CI valida el mismo artefacto que se desplegaria.
 - Se descarto la variante con proxy `/api` en nginx porque ocultaria la validacion de CORS, que el flujo local si necesita.
 
+### Pruebas contra PostgreSQL, no SQLite en memoria
+
+- La suite se ejecuta contra PostgreSQL. `phpunit.xml` fija `DB_CONNECTION=pgsql` y `DB_DATABASE=promotions_test`; el host, el puerto, el usuario y la contrasena siguen viniendo de `.env` para no versionar credenciales.
+- *Motivo:* el esquema de `promotions` depende de restricciones `CHECK` con nombre, que SQLite no soporta via `ALTER TABLE ... ADD CONSTRAINT`. Ademas queremos que las pruebas validen el mismo motor que produccion: constraints reales, semantica `DATE` real y agregaciones reales.
+- *Contrapartida:* ejecutar las pruebas exige un PostgreSQL disponible en local y un servicio de Postgres en CI, y obliga a crear la base `promotions_test` antes del primer `php artisan test`.
+
 ### Health check del contenedor backend
 
 - El healthcheck del contenedor backend apunta temporalmente a `/up`, el endpoint nativo de Laravel, porque `/health` se implementa en la tarea 3.7.

@@ -79,6 +79,15 @@ php artisan test
 vendor/bin/pint
 ```
 
+La suite de pruebas se ejecuta contra PostgreSQL, no contra SQLite en memoria, porque el esquema depende de restricciones `CHECK` que SQLite no soporta. Requiere una base de datos `promotions_test` disponible. Para crearla con el PostgreSQL de Compose:
+
+```bash
+docker compose up -d postgres
+docker compose exec postgres createdb -U postgres promotions_test
+```
+
+Sin esa base de datos, `php artisan test` falla al conectar. El host, el puerto, el usuario y la contrasena se leen de `backend/.env`, nunca de `phpunit.xml`.
+
 Frontend, desde `frontend/`:
 
 ```bash
