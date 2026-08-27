@@ -1,0 +1,14 @@
+.claude/
+.github/
+openspec/
+CGPT-PLAN_IMPLEMENTACION_PRUEBA_TECNICA.md
+prueba técnica.md
+workflow.md
+.env
+.env.*
+!.env.example
+/vendor/
+node_modules/
+frontend/dist/
+backend/storage/
+backend/bootstrap/cache/
