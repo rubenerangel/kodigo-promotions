@@ -28,6 +28,16 @@
 - Actions/Services tienen responsabilidad unica y contienen los casos de uso que requieren coordinacion.
 - Se usa Eloquent directamente desde los casos de uso; no se incorpora un Repository generico sin una necesidad concreta.
 
+### Aplicacion concreta: el target exclusivo
+
+Los tres puntos siguientes son la aplicacion verificable de los principios anteriores, y en cada uno se anota la alternativa que se descarto.
+
+- **El target se modela con objetos polimorficos.** Una interfaz `PromotionTarget` y dos implementaciones instanciables, `ProductTarget` y `CategoryTarget`, cada una responsable de aportar sus propias columnas. *Alternativa descartada:* un DTO con `product_id` y `category_id` nullable mas una guarda que lance excepcion si no viene exactamente uno. *Motivo:* con objetos de target el estado invalido deja de ser representable, en lugar de ser representable y obligar a defenderse de el en cada caso de uso que toque el target. Los casos de uso no contienen condicionales por variante, de modo que anadir un tercer tipo de target no obliga a modificarlos.
+- **Los casos de uso reciben sus colaboradores por constructor y persisten con `newQuery()`.** *Alternativa descartada:* llamar a los metodos estaticos del modelo, como `Promotion::create()`. *Consecuencia:* el contenedor resuelve los casos de uso por autowiring, sin bindings manuales, y las pruebas pueden sustituir colaboradores.
+- **Los DTO de entrada no exponen constructores desde peticion HTTP.** *Alternativa descartada:* metodos tipo `fromRequest()` o `fromArray()` en el propio DTO. *Motivo:* convertir una peticion en datos de dominio pertenece a la capa de Form Requests; mantenerlo fuera evita que el transporte se filtre al dominio.
+
+Criterio para este documento: se registra una decision cuando existio una alternativa real que se descarto, y se anota cual fue. No se registran estados transitorios de la implementacion, porque dejan de ser ciertos y convierten el documento en un changelog desactualizado.
+
 ## 3. Modelo de dominio
 
 - Las tablas principales son `products`, `categories` y `promotions`.
