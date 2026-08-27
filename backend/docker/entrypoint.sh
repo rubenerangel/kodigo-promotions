@@ -16,12 +16,21 @@ echo "[entrypoint] PostgreSQL is accepting connections."
 # Compose take precedence over its contents.
 [ -f .env ] || cp .env.example .env
 
-# Only generate a key when none was provided. Unsetting the empty variable lets
-# Laravel read the freshly written value from .env.
+# Compose always injects APP_KEY, empty when the variable is not set. An empty
+# environment variable would win over the .env value, because Laravel's Dotenv
+# never overrides an existing variable, so drop it first and let Laravel read
+# the file. Generate a key only when neither source holds one: checking the
+# environment variable alone would rotate the key on every restart and
+# invalidate anything derived from it.
 if [ -z "${APP_KEY:-}" ]; then
     unset APP_KEY
-    echo "[entrypoint] Generating application key..."
-    php artisan key:generate --force
+
+    if ! grep -q '^APP_KEY=base64:' .env; then
+        echo "[entrypoint] Generating application key..."
+        php artisan key:generate --force
+    else
+        echo "[entrypoint] Reusing the application key already present in .env."
+    fi
 fi
 
 echo "[entrypoint] Running migrations..."
