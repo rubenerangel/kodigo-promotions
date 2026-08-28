@@ -2,9 +2,10 @@
 
 ## 1. Stack
 
-- Laravel expone la API HTTP y concentra las reglas de negocio del backend.
-- PostgreSQL es la base de datos relacional.
-- React con TypeScript y Vite implementa la interfaz web.
+- **Laravel 13 sobre PHP 8.4** expone la API HTTP y concentra las reglas de negocio del backend.
+- **PostgreSQL 17** es la base de datos relacional.
+- **React 19 con TypeScript 6 y Vite 8** implementa la interfaz web, construida con pnpm 11 sobre Node 22 y servida por nginx.
+- Las versiones se anotan porque varias decisiones de este documento dependen de ellas y dejarian de tener sentido con otras: PHP 8.4 lo impone el `composer.lock` (ver seccion 5), la mayor de PostgreSQL la comparten Compose y CI a proposito (seccion 8), y el modo estricto de TypeScript rige sin declararlo por ser la version 6 (seccion 6).
 
 ## 2. Arquitectura y principios de diseño
 
@@ -61,6 +62,7 @@ Criterio para este documento: se registra una decision cuando existio una altern
 
 - Los errores se expresan mediante codigos HTTP: `422` para validacion, `404` para recursos inexistentes y `409` para conflictos de estado.
 - Las promociones `FINISHED` no se editan ni se eliminan; la eliminacion queda limitada a `SCHEDULED`.
+- **`PATCH /api/promotions/{id}` exige el cuerpo completo: sustituye, no parchea.** Todos los campos editables son `required`, y `status` va `prohibited` porque el ciclo de vida solo se mueve por `PATCH /api/promotions/{id}/status`. *Alternativa descartada:* aceptar cuerpos parciales con `sometimes`, que es lo que el verbo sugiere. *Motivo:* la pantalla edita en un formulario que ya tiene todos los valores cargados, y admitir cuerpos parciales obligaria a decidir que significa omitir el target sin ningun consumidor que lo necesitase. *Consecuencia que conviene conocer:* un cuerpo parcial contra una promocion `FINISHED` responde `422` y no `409`, porque la validacion corre antes que la regla de estado. El `409` aparece cuando el cuerpo es valido, que es lo que envia la interfaz.
 - El health check debe verificar la conectividad real con PostgreSQL y responder `200` o `503`.
 
 ## 5. Entorno y Docker
@@ -116,6 +118,7 @@ Criterio para este documento: se registra una decision cuando existio una altern
 - **Solo `finalizar` y `eliminar` piden confirmacion; `activar` no.** Los tres son irreversibles, y la regla tentadora es confirmarlos todos. *Motivo para no hacerlo:* un dialogo que aparece en cada pulsacion deja de leerse, y quien lo recibe aprende el segundo clic y se lo aplica tambien al dialogo que si importaba. Eliminar destruye la fila; finalizar cierra la promocion para siempre, que es el estado que ademas prohibe editar y eliminar. Activar avanza un paso, deja la promocion editable y finalizable, y su unico coste es perder la posibilidad de eliminarla.
 - **La confirmacion es un `<dialog>` propio y nunca `window.confirm`.** El prompt nativo no admite mas de una linea, no se estiliza, bloquea el hilo principal y en movil lo dibuja el sistema operativo con el origen de la pagina encima, lo que se lee como una advertencia de seguridad y no como una pregunta sobre una promocion.
 - **El foco inicial de la confirmacion esta en `Cancelar`.** El dialogo existe para interrumpir algo que no se puede deshacer, asi que la tecla que ya esta bajo el dedo debe responder "no"; enfocar el boton destructivo convertiria el dialogo en una pulsacion mas de camino al mismo borrado.
+- **Los dos `<dialog>` filtran su evento `close` en lugar de conectarlo directo al cierre de estado.** El elemento no despacha ese evento con el `close()` que lo provoca: lo encola y llega en una tarea posterior, de modo que puede aterrizar cuando la pantalla ya ha abierto otro dialogo, y entonces cancela el que esta en pantalla. *Alternativa descartada:* `onClose` apuntando al cierre sin mas, que es lo que parece obvio y lo que habia. *Motivo:* medido, no supuesto —un `showModal` y, seis milisegundos despues, un `close()` que ningun clic explica—; en el formulario el eco ademas se lleva por delante lo que hubiera escrito. La guarda lee `open`, porque un dialogo abierto es uno que nadie ha cerrado. Verificado por mutacion en los dos componentes: sin la guarda, la pregunta se cierra sola y el texto del formulario vuelve como `null`. *Alcance real:* la ventana es de milisegundos y hoy solo la alcanza la automatizacion, pero se ensancha cuando el hilo principal va cargado y cerrarla cuesta cuatro lineas.
 - **Mientras una escritura esta en vuelo se deshabilitan todos los botones de accion, no solo el pulsado.** *Motivo:* una segunda escritura competiria con el refresco de la primera y el listado se quedaria con la respuesta que llegase la ultima. Las operaciones son cortas y nadie las lanza en paralelo, asi que esperar no cuesta nada al lado de una pantalla que describa un estado en el que el servidor nunca estuvo.
 - **La guarda real contra la doble pulsacion es un `ref`, no el estado.** Dos clics despachados antes de que React vuelva a pintar leen ambos el estado como vacio; el atributo `disabled` hace el caso improbable y el `ref` lo hace imposible. Verificado por mutacion: sustituir el `ref` por la comprobacion sobre el estado crea dos promociones con una sola intencion.
 - **Ninguna escritura termina en silencio.** Cada una deja un aviso que nombra la promocion, con `role="alert"` cuando fallo y `role="status"` cuando funciono, y se descarta a mano y nunca por temporizador. Cuando el control que inicio la operacion ya no existe —una fila borrada, unos botones sustituidos por los del nuevo estado— el foco se lleva al aviso, porque de lo contrario caeria al `body` y quien navega por teclado tendria que empezar de nuevo desde arriba.
