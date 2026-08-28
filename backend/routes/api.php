@@ -3,6 +3,7 @@
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\PromotionStatusController;
 use App\Http\Controllers\PromotionSummaryController;
+use App\Http\Controllers\PromotionTargetController;
 use Illuminate\Support\Facades\Route;
 
 // Must stay above every route carrying {promotion}. The router walks the
@@ -37,3 +38,10 @@ Route::patch('promotions/{promotion}/status', PromotionStatusController::class)
     ->whereNumber('promotion');
 Route::delete('promotions/{promotion}', [PromotionController::class, 'destroy'])
     ->whereNumber('promotion');
+
+// Declared after the promotions block, and outside it, because its root
+// segment is `promotion-targets`: no ordering hazard reaches it, since the
+// router can only confuse routes that could match the same URI. Keeping it
+// here leaves the ordering above contiguous and intact, which is where the
+// order actually carries meaning.
+Route::get('promotion-targets', PromotionTargetController::class);
