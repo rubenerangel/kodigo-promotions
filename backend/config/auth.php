@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\User;
-
 return [
 
     /*
@@ -62,9 +60,16 @@ return [
     */
 
     'providers' => [
+        // No model, because there is no user model: the project exposes no
+        // authentication, and the `users` table and its Eloquent model were
+        // removed as scaffolding. The entry stays so the shape of the
+        // framework's auth configuration remains intact for anything that
+        // reads it; resolving a guard from it would fail, which is the honest
+        // outcome of asking an application without authentication to
+        // authenticate somebody.
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'model' => env('AUTH_MODEL'),
         ],
 
         // 'users' => [

@@ -18,7 +18,14 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    // The fallback is `file` and no longer `database`: the `sessions` table was
+    // created by the users migration, which went away with the rest of the
+    // authentication scaffolding. Every environment already declares
+    // SESSION_DRIVER — `file` in .env.example, `array` in phpunit.xml — so this
+    // only decides what happens when nobody declares it, and defaulting to a
+    // table that does not exist would turn an unset variable into a runtime
+    // failure on the first request that touches a session.
+    'driver' => env('SESSION_DRIVER', 'file'),
 
     /*
     |--------------------------------------------------------------------------
