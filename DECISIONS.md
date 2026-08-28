@@ -96,7 +96,31 @@ Criterio para este documento: se registra una decision cuando existio una altern
 - La ruta se registra fuera del grupo de middleware `web`, porque la monitorizacion la consulta de forma continua y el middleware de sesion abriria y persistiria una sesion en cada sondeo.
 - La prueba del `503` reconfigura la conexion hacia un host que no resuelve y la purga, de modo que falla el driver de verdad. *Alternativa descartada:* una interfaz con un doble que devuelva falso, que habria verificado que el controlador traduce un booleano, pero no que una caida real de PostgreSQL se capture.
 
-## 6. Seguridad y alcance
+## 6. Interfaz
+
+### Refresco tras una escritura
+
+- **El listado y el resumen se releen mediante un contador compartido, no mediante estado elevado ni una cache de cliente.** `usePromotionWrites` mantiene un `revision` que se incrementa despues de cada escritura y que ambos lectores reciben como parametro de `useApiResource`. *Alternativas descartadas:* elevar las dos lecturas al shell, que convierte a `App` en propietario de dos payloads que nunca lee; y anadir una cache de cliente, que es la respuesta general pero introduce una dependencia y un modelo mental completo para un unico numero. *Motivo:* cada componente sigue siendo dueno de su lectura y el shell solo necesita saber que algo cambio, no que cambio.
+- **Se relee, no se parchea la fila en memoria.** Los contadores los calcula una unica consulta agregada en PostgreSQL, y un cambio de estado mueve mas que la fila que se toco. Recalcularlos en el navegador a partir de la promocion que devolvio la API seria una segunda implementacion del resumen, libre de divergir de la primera.
+- **Los contadores y el listado se refrescan con el mismo valor en el mismo render.** Un listado fresco bajo contadores que describen el estado anterior se lee como un sistema que no sabe contar, y eso es peor que no refrescar nada.
+- Un `409` o un `404` en una escritura tambien disparan la relectura, no solo el aviso. Esos codigos significan que la promocion no esta en el estado que la pantalla creia: dejar la fila como estaba mantendria a la vista acciones que el servidor ya rechazo.
+
+### Validacion en el formulario
+
+- **El formulario valida con sus propias reglas y conserva los atributos nativos, pero desactiva el reporte del navegador (`noValidate`).** *Alternativa descartada:* dejar que el navegador valide y reporte, que no cuesta codigo. *Motivo:* el reporte nativo muestra una burbuja cada vez, en el idioma del navegador y no en el de la pagina, y desaparece al desplazarse. Los atributos (`required`, `min`, `max`, `step`) se conservan porque hacen otro trabajo: dan forma al control, abren el teclado numerico en movil y exponen el campo como obligatorio a la tecnologia asistiva. *Coste asumido:* las reglas quedan escritas dos veces, en los Form Requests y en `domain/promotionFormIssues.ts`; el backend sigue siendo la autoridad y vuelve a comprobarlas todas.
+- **Las dos claves del wire, `product_id` y `category_id`, aterrizan en el mismo control.** El formulario tiene un unico selector porque su estado guarda un tipo y un identificador. No es una perdida de informacion: el payload lleva exactamente una de las dos claves, asi que como mucho una puede volver con mensaje.
+- Un `422` que solo nombre campos sin control en el formulario se muestra a nivel de formulario, no junto a ningun campo, para que un envio rechazado no parezca un envio que no hizo nada.
+
+### Confirmaciones y operaciones en curso
+
+- **Solo `finalizar` y `eliminar` piden confirmacion; `activar` no.** Los tres son irreversibles, y la regla tentadora es confirmarlos todos. *Motivo para no hacerlo:* un dialogo que aparece en cada pulsacion deja de leerse, y quien lo recibe aprende el segundo clic y se lo aplica tambien al dialogo que si importaba. Eliminar destruye la fila; finalizar cierra la promocion para siempre, que es el estado que ademas prohibe editar y eliminar. Activar avanza un paso, deja la promocion editable y finalizable, y su unico coste es perder la posibilidad de eliminarla.
+- **La confirmacion es un `<dialog>` propio y nunca `window.confirm`.** El prompt nativo no admite mas de una linea, no se estiliza, bloquea el hilo principal y en movil lo dibuja el sistema operativo con el origen de la pagina encima, lo que se lee como una advertencia de seguridad y no como una pregunta sobre una promocion.
+- **El foco inicial de la confirmacion esta en `Cancelar`.** El dialogo existe para interrumpir algo que no se puede deshacer, asi que la tecla que ya esta bajo el dedo debe responder "no"; enfocar el boton destructivo convertiria el dialogo en una pulsacion mas de camino al mismo borrado.
+- **Mientras una escritura esta en vuelo se deshabilitan todos los botones de accion, no solo el pulsado.** *Motivo:* una segunda escritura competiria con el refresco de la primera y el listado se quedaria con la respuesta que llegase la ultima. Las operaciones son cortas y nadie las lanza en paralelo, asi que esperar no cuesta nada al lado de una pantalla que describa un estado en el que el servidor nunca estuvo.
+- **La guarda real contra la doble pulsacion es un `ref`, no el estado.** Dos clics despachados antes de que React vuelva a pintar leen ambos el estado como vacio; el atributo `disabled` hace el caso improbable y el `ref` lo hace imposible. Verificado por mutacion: sustituir el `ref` por la comprobacion sobre el estado crea dos promociones con una sola intencion.
+- **Ninguna escritura termina en silencio.** Cada una deja un aviso que nombra la promocion, con `role="alert"` cuando fallo y `role="status"` cuando funciono, y se descarta a mano y nunca por temporizador. Cuando el control que inicio la operacion ya no existe —una fila borrada, unos botones sustituidos por los del nuevo estado— el foco se lleva al aviso, porque de lo contrario caeria al `body` y quien navega por teclado tendria que empezar de nuevo desde arriba.
+
+## 7. Seguridad y alcance
 
 - No se versionan contraseñas, claves, tokens ni archivos `.env`; `.env.example` contiene solo nombres y valores locales no sensibles.
 - Se excluyen del seguimiento `.claude/`, `.github/`, `openspec/`, `CGPT-PLAN_IMPLEMENTACION_PRUEBA_TECNICA.md`, `prueba técnica.md` y `workflow.md`.
