@@ -222,7 +222,7 @@ class UpdatePromotionRequestTest extends TestCase
 
             $this->assertSame(422, $response->getStatusCode());
             $this->assertSame(ApiErrorCode::VALIDATION_FAILED->value, $body['error']['code']);
-            $this->assertSame('Los datos enviados no son validos.', $body['error']['message']);
+            $this->assertSame('The given data was invalid.', $body['error']['message']);
             $this->assertArrayHasKey('name', $body['error']['fields']);
         }
     }

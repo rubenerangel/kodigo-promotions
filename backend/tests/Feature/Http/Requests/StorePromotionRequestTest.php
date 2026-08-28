@@ -239,7 +239,7 @@ class StorePromotionRequestTest extends TestCase
 
             $this->assertSame(422, $response->getStatusCode());
             $this->assertSame(ApiErrorCode::VALIDATION_FAILED->value, $body['error']['code']);
-            $this->assertSame('Los datos enviados no son validos.', $body['error']['message']);
+            $this->assertSame('The given data was invalid.', $body['error']['message']);
             $this->assertArrayHasKey('name', $body['error']['fields']);
         }
     }
@@ -248,7 +248,7 @@ class StorePromotionRequestTest extends TestCase
     {
         $response = $this->errorResponse()->build(
             ApiErrorCode::VALIDATION_FAILED,
-            'Los datos enviados no son validos.',
+            'The given data was invalid.',
             422,
             ['discount_value' => ['El valor debe estar entre 1 y 100.']],
         );
@@ -257,7 +257,7 @@ class StorePromotionRequestTest extends TestCase
         $this->assertSame([
             'error' => [
                 'code' => 'VALIDATION_FAILED',
-                'message' => 'Los datos enviados no son validos.',
+                'message' => 'The given data was invalid.',
                 'fields' => [
                     'discount_value' => ['El valor debe estar entre 1 y 100.'],
                 ],
@@ -269,7 +269,7 @@ class StorePromotionRequestTest extends TestCase
     {
         $response = $this->errorResponse()->build(
             ApiErrorCode::VALIDATION_FAILED,
-            'Los datos enviados no son validos.',
+            'The given data was invalid.',
             422,
         );
 

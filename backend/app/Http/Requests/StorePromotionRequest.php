@@ -106,7 +106,7 @@ class StorePromotionRequest extends FormRequest
 
         throw new HttpResponseException($errors->build(
             ApiErrorCode::VALIDATION_FAILED,
-            'Los datos enviados no son validos.',
+            'The given data was invalid.',
             Response::HTTP_UNPROCESSABLE_ENTITY,
             $validator->errors()->toArray(),
         ));
