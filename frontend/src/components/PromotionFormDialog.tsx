@@ -49,6 +49,29 @@ export function PromotionFormDialog({ request, onClose, onSubmit }: PromotionFor
     }
   }, [request])
 
+  /**
+   * The `close` event, once it is certain it is about the form on screen.
+   *
+   * Escape closes a modal dialog on its own, and that has to mean the same as
+   * pressing the cross, so both ways out end here and the state cannot be left
+   * believing the dialog is still open.
+   *
+   * The guard is the same one `ConfirmDialog` carries, for the same reason: the
+   * element queues this event rather than firing it with the `close()` that
+   * caused it, so it can arrive after the dialog has been opened again. Here
+   * that costs more than a question closing itself. Saving and immediately
+   * reaching for "Nueva promoción", or closing and pressing "Editar" on
+   * another row, would land inside the window, and what the echo would throw
+   * away is a form with whatever has been typed into it.
+   */
+  function handleDialogClose(): void {
+    if (dialogRef.current?.open === true) {
+      return
+    }
+
+    onClose()
+  }
+
   const isEditing = request?.mode === 'edit'
 
   return (
@@ -56,10 +79,7 @@ export function PromotionFormDialog({ request, onClose, onSubmit }: PromotionFor
       className="promotion-dialog"
       ref={dialogRef}
       aria-labelledby={TITLE_ID}
-      // Fires for Escape as well as for close(), so both routes out of the
-      // dialog end in the same place and the state cannot be left thinking it
-      // is still open.
-      onClose={onClose}
+      onClose={handleDialogClose}
     >
       {request !== null && (
         <div className="promotion-dialog__panel">
