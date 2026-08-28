@@ -77,6 +77,9 @@
   --font-weight-bold: 700;
 
   --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 4%);
+  /* For what floats above the page, such as the promotion dialog: it has to
+     read as a separate layer, not as another card in the column. */
+  --shadow-lg: 0 10px 15px rgb(16 24 40 / 10%), 0 4px 6px rgb(16 24 40 / 5%);
 
   /* Width the shell settles at on a wide screen. */
   --layout-max-width: 72rem;

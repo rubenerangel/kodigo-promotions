@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import type { PromotionAction } from '../domain/promotionActions'
+import type { Promotion } from '../types/api'
 import { ErrorNotice } from './ErrorNotice'
 import { PromotionRow } from './PromotionRow'
 import { copy } from '../copy/es'
@@ -8,6 +10,15 @@ import { fetchPromotions } from '../services/promotions'
 import './PromotionList.css'
 
 const CAPTION_ID = 'promotions-caption'
+
+type PromotionListProps = {
+  /**
+   * Told which action was asked for, and on which promotion. The listing does
+   * not act: it names what was pressed and lets the screen above decide, which
+   * is what keeps the dialog out of the table.
+   */
+  onAction?: (action: PromotionAction, promotion: Promotion) => void
+}
 
 /**
  * The promotion listing.
@@ -26,7 +37,7 @@ const CAPTION_ID = 'promotions-caption'
  * are an answer; an empty table is not, and a header row over nothing looks
  * like a listing that failed rather than one with nothing to list yet.
  */
-export function PromotionList() {
+export function PromotionList({ onAction }: PromotionListProps) {
   const { data, error, isLoading, reload } = useApiResource(fetchPromotions)
 
   let body: ReactNode
@@ -76,7 +87,7 @@ export function PromotionList() {
           </thead>
           <tbody>
             {data.map((promotion) => (
-              <PromotionRow key={promotion.id} promotion={promotion} />
+              <PromotionRow key={promotion.id} promotion={promotion} onAction={onAction} />
             ))}
           </tbody>
         </table>

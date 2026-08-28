@@ -12,12 +12,28 @@ export const PROMOTION_STATUSES = ['SCHEDULED', 'ACTIVE', 'FINISHED'] as const
 
 export type PromotionStatus = (typeof PROMOTION_STATUSES)[number]
 
-/** Discount variants. Mirrors `App\Enums\DiscountType`. */
-export type DiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT'
+/**
+ * Discount variants. Mirrors `App\Enums\DiscountType`.
+ *
+ * Written as a list rather than as a bare union, like the statuses above, so
+ * the form can offer one control per variant by walking it instead of
+ * repeating the two names in a second place that nothing keeps in step.
+ */
+export const DISCOUNT_TYPES = ['PERCENTAGE', 'FIXED_AMOUNT'] as const
+
+export type DiscountType = (typeof DISCOUNT_TYPES)[number]
+
+/**
+ * The two things a promotion can be aimed at. Mirrors the two implementations
+ * of `App\Domain\Targets\PromotionTarget`.
+ */
+export const PROMOTION_TARGET_TYPES = ['product', 'category'] as const
+
+export type PromotionTargetType = (typeof PROMOTION_TARGET_TYPES)[number]
 
 /** What a promotion applies to: exactly one product or one category. */
 export type PromotionTarget = {
-  type: 'product' | 'category'
+  type: PromotionTargetType
   id: number
   name: string
 }
@@ -82,3 +98,66 @@ export type ApiErrorCode = (typeof API_ERROR_CODES)[number]
 
 /** Per field validation messages, keyed by the field that failed. */
 export type FieldErrors = Record<string, string[]>
+
+/**
+ * One selectable target: the identifier the API expects and the label the user
+ * reads. Answered for products and for categories alike, since the form treats
+ * both the same way once it knows which kind it is choosing from.
+ */
+export type PromotionTargetOption = {
+  id: number
+  name: string
+}
+
+/** Answer of `GET /api/promotion-targets`, already sorted by the API. */
+export type PromotionTargetCatalog = {
+  products: PromotionTargetOption[]
+  categories: PromotionTargetOption[]
+}
+
+/**
+ * The target half of a write payload: `product_id` or `category_id`, never
+ * both and never neither.
+ *
+ * The optional `never` on the opposite key is what makes that a compile time
+ * guarantee and not a convention. `{ product_id: 3, category_id: 1 }` matches
+ * neither member of the union, so it cannot be built, in the same way the
+ * backend's `prohibits:` rules reject it at runtime. This is the wire level
+ * echo of the domain rule: `ProductTarget` and `CategoryTarget` are two
+ * classes, each carrying one identifier, and an ambiguous target is not
+ * something the system rejects, it is something it cannot express.
+ */
+export type PromotionPayloadTarget =
+  | { product_id: number; category_id?: never }
+  | { category_id: number; product_id?: never }
+
+/**
+ * The body sent to `POST /api/promotions` and to
+ * `PATCH /api/promotions/{id}`.
+ *
+ * Keys are snake_case because these are the field names the Form Requests
+ * validate, not names this interface chooses. The rest of the client speaks
+ * camelCase, and the crossing happens here, at the wire.
+ *
+ * THERE IS NO `status` KEY, AND NONE MAY BE ADDED. `UpdatePromotionRequest`
+ * declares `status` as `prohibited`, so sending it answers 422 and the whole
+ * edit is lost. That is deliberate on the backend's part: the lifecycle moves
+ * through `PATCH /api/promotions/{id}/status`, which is the only place the
+ * allowed transitions are enforced. A `status` added here would look like a
+ * missing field being filled in and would break every edit.
+ *
+ * `discount_value` is text for the same reason the API answers it as text: the
+ * column is `decimal(10, 2)`, and a round trip through a JavaScript number is
+ * exactly where the exact decimal would be lost.
+ *
+ * The dates are `YYYY-MM-DD`, the value an `<input type="date">` already
+ * produces, carried through untouched. See `format/promotionDate.ts` for what
+ * happens when such a string is turned into a `Date` on the way.
+ */
+export type PromotionPayload = PromotionPayloadTarget & {
+  name: string
+  discount_type: DiscountType
+  discount_value: string
+  start_date: string
+  end_date: string
+}

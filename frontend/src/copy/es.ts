@@ -139,6 +139,90 @@ export const copy = {
   },
 
   /**
+   * The alta and edición dialog. One section for both, because they are one
+   * form: only the words that name the operation differ, and keeping the two
+   * sets side by side is what shows at a glance that nothing else does.
+   */
+  form: {
+    /** The button that opens the dialog with an empty form. */
+    open: 'Nueva promoción',
+
+    createTitle: 'Nueva promoción',
+    editTitle: 'Editar promoción',
+    /**
+     * Names the operation, not the act of saving. "Guardar" on both would be
+     * the only thing distinguishing the two dialogs, and it distinguishes
+     * nothing.
+     */
+    createSubmit: 'Crear promoción',
+    editSubmit: 'Guardar cambios',
+    cancel: 'Cancelar',
+
+    /**
+     * The accessible name of the corner button. Said in full because it is
+     * heard without the dialog around it, and a bare "Cerrar" leaves open what
+     * is being closed.
+     */
+    close: 'Cerrar el formulario',
+    /**
+     * What that button draws. A multiplication sign, not the letter x: it is
+     * the shape a close control has, and it is hidden from assistive
+     * technology, which reads the label above instead.
+     */
+    closeMark: '×',
+
+    fields: {
+      name: 'Nombre',
+      /**
+       * The legend over the pair of radios. Worded as the listing words its
+       * column, so the same fact is named the same way on both screens.
+       */
+      targetType: 'Se aplica a',
+      discountType: 'Tipo de descuento',
+      discountValue: 'Valor del descuento',
+      startDate: 'Fecha de inicio',
+      endDate: 'Fecha de fin',
+    },
+
+    /**
+     * Says the accepted range before it is broken, which is help and not a
+     * validation message: the messages for a value that is already wrong are
+     * task 5.4. A numeric box with invisible bounds is a guess.
+     */
+    discountValueHints: {
+      PERCENTAGE: 'Un porcentaje entre 1 y 100.',
+      FIXED_AMOUNT: 'Un importe mayor que 0, con hasta dos decimales.',
+    },
+
+    /**
+     * The first option of the target select. Its value is empty, so the
+     * control stays invalid until something real is chosen.
+     */
+    targetPlaceholder: 'Selecciona una opción',
+
+    /** The three answers the catalogue of targets can give. */
+    catalog: {
+      loading: 'Cargando los productos y las categorías.',
+      /**
+       * Both lists came back empty. Said plainly, because no amount of
+       * retrying fixes it and the user would otherwise keep looking for the
+       * options in an empty select.
+       */
+      empty:
+        'Todavía no hay productos ni categorías. Sin ellos no se puede crear una promoción.',
+    },
+
+    /**
+     * The chosen kind has no options, but the other one does, so the way out
+     * is named rather than left to be discovered.
+     */
+    targetEmpty: {
+      product: 'No hay productos disponibles. Elige una categoría.',
+      category: 'No hay categorías disponibles. Elige un producto.',
+    },
+  },
+
+  /**
    * One text per failure the interface can face, chosen by the API's `code`
    * and never by its message.
    */

@@ -1,0 +1,52 @@
+.promotion-dialog {
+  width: min(34rem, calc(100vw - 2 * var(--space-4)));
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+}
+
+.promotion-dialog::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.promotion-dialog__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.promotion-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.promotion-dialog__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.promotion-dialog__close {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.promotion-dialog__close:hover {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}

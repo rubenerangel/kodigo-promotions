@@ -43,3 +43,21 @@
     padding-inline: var(--space-4);
   }
 }
+
+/* The one action that does not belong to a promotion already in the listing,
+   so it sits in the header rather than inside the table. */
+.app__create {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.app__create:hover {
+  border-color: var(--color-accent-strong);
+  background: var(--color-accent-strong);
+}
