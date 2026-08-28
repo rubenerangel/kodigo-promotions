@@ -1,0 +1,109 @@
+.promotions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* Without this a flex item refuses to shrink below the width of what is
+     inside it, and the table would push the whole page sideways instead of
+     scrolling in its own container. */
+  min-width: 0;
+}
+
+.promotions__title {
+  font-size: var(--font-size-xl);
+}
+
+/*
+ * The only element allowed to overflow horizontally.
+ *
+ * The table below keeps a minimum width because seven columns squeezed into
+ * 375px stop being readable long before they stop fitting. That width has to
+ * go somewhere, and here it goes into this box's own scrollbar rather than
+ * into the document's.
+ */
+.promotions__scroller {
+  max-width: 100%;
+  overflow-x: auto;
+  /*
+   * Positioned so that it, and not the document, is the containing block of
+   * the absolutely positioned `.visually-hidden` text inside the table — the
+   * caption and the word joining the two dates of a range.
+   *
+   * Without this the containing block of that text is the page itself, which
+   * puts it outside the chain this box clips: it keeps the x it would have had
+   * inside a table almost a thousand pixels wide, and the document grows to
+   * reach it. The page then scrolls sideways at 375px, dragged there by text
+   * that is not even visible. Measured before the fix: the document scrolled
+   * 89px with every visible element inside the viewport.
+   */
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.promotions__table {
+  width: 100%;
+  min-width: 58rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.promotions__table th,
+.promotions__table td {
+  padding: var(--space-3);
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.promotions__table thead th {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.promotions__table tbody tr:last-child th,
+.promotions__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* The three panels that stand in for the table: same card as the table itself,
+   so the section keeps its shape whichever of the four states it is in. */
+.promotions__notice,
+.promotions__empty {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.promotions__notice {
+  color: var(--color-text-muted);
+}
+
+.promotions__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* Dashed, like the validity card in the summary: an outline around nothing
+     reads as a space waiting to be filled rather than as a solid card that
+     happens to be blank. */
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+  box-shadow: none;
+}
+
+.promotions__empty-title {
+  font-weight: var(--font-weight-medium);
+}
+
+.promotions__empty-hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-wrap: pretty;
+}

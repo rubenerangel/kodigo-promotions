@@ -27,6 +27,8 @@
   --color-text-muted: #5b6875;
 
   --color-accent: #1d4ed8;
+  /* The same accent, one step darker, for the hover of a filled button. */
+  --color-accent-strong: #1a3fae;
   --color-accent-contrast: #ffffff;
 
   /* Status palette. Each pair is a readable text colour over its surface. */

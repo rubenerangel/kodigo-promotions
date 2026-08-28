@@ -36,8 +36,106 @@ export const copy = {
     validToday: 'Vigentes hoy',
   },
 
+  promotions: {
+    title: 'Promociones',
+    /**
+     * The table's caption. It is read before the table and never shown, since
+     * the visible heading above already names the section and repeating it in
+     * larger type would only push the first row further down. What it adds is
+     * what a sighted reader gets from the header row at a glance: what the
+     * columns are and how the rows are ordered.
+     */
+    caption:
+      'Listado de promociones, de la fecha de inicio más reciente a la más antigua. Cada fila indica el nombre, a qué se aplica, el descuento, las fechas, el estado, si está vigente hoy y las acciones disponibles.',
+    loading: 'Cargando el listado de promociones.',
+    emptyTitle: 'Todavía no hay promociones.',
+    emptyHint: 'Cuando se cree la primera, aparecerá en este listado.',
+
+    columns: {
+      name: 'Nombre',
+      target: 'Se aplica a',
+      discount: 'Descuento',
+      dates: 'Fechas',
+      status: 'Estado',
+      validity: 'Vigencia hoy',
+      actions: 'Acciones',
+    },
+
+    /**
+     * The two halves of the join between the dates of a range. On screen it is
+     * the dash; a dash is not reliably announced, so assistive technology is
+     * given the word instead and the dash is hidden from it. Both live here so
+     * the row holds no visible character of its own.
+     */
+    dateRangeMark: '–',
+    dateRangeSeparator: 'hasta',
+
+    /**
+     * Stands where the buttons are on every other row. A finished promotion
+     * admits no action at all, and leaving the cell empty would read as a
+     * layout accident rather than as the rule it is.
+     */
+    noActions: 'Finalizada: no admite cambios.',
+  },
+
+  /** Whether a promotion applies to a single product or to a whole category. */
+  targetTypes: {
+    product: 'Producto',
+    category: 'Categoría',
+  },
+
+  discountTypes: {
+    PERCENTAGE: 'Porcentaje',
+    FIXED_AMOUNT: 'Importe fijo',
+  },
+
+  /** The three lifecycle states, as the user reads them. */
+  statuses: {
+    SCHEDULED: 'Programada',
+    ACTIVE: 'Activa',
+    FINISHED: 'Finalizada',
+  },
+
+  /**
+   * Whether today falls inside the promotion's dates. Worded in full on both
+   * sides rather than as "Sí" and "No": the cell is read out of context by a
+   * screen reader, and a bare "No" next to a status called "Activa" is exactly
+   * the confusion this column has to avoid.
+   */
+  validity: {
+    valid: 'Vigente hoy',
+    notValid: 'No vigente hoy',
+  },
+
+  /**
+   * How Spanish writes a number. Kept beside the words because it is part of
+   * the same choice of language, and read by the formatters so no component
+   * decides on its own where a comma goes.
+   */
+  numbers: {
+    decimalSeparator: ',',
+    groupSeparator: '.',
+    /**
+     * Written as an escape and not typed literally: it is a non breaking
+     * space, so the sign can never wrap away from its number, and an
+     * invisible character in the source is one nobody can maintain.
+     */
+    percentSuffix: '\u00a0%',
+  },
+
   actions: {
     retry: 'Reintentar',
+    activate: 'Activar',
+    finish: 'Finalizar',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    /**
+     * Names the promotion a button acts on, for whoever hears the buttons one
+     * by one instead of seeing the row they sit in. Six buttons that all
+     * announce "Editar" say nothing about which of six promotions they edit.
+     */
+    forPromotion: (action: string, promotionName: string) =>
+      `${action} la promoción ${promotionName}`,
   },
 
   /**

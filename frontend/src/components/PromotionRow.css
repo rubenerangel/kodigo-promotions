@@ -1,0 +1,181 @@
+.promotion-row__name {
+  font-weight: var(--font-weight-medium);
+  /* The widest thing in the row and the one that may wrap; everything else is
+     kept on one line, so this is where a long name is allowed to grow. */
+  min-width: 10rem;
+}
+
+.promotion-row__target,
+.promotion-row__discount {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/*
+ * One line, in reading order: the two dates and the dash between them. Laid
+ * out as a column the dash would sit alone on a line of its own, which reads
+ * as a third value rather than as the join between two.
+ */
+.promotion-row__dates {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+/*
+ * The kind of thing a promotion applies to, printed above its name. A name on
+ * its own never says whether the discount reaches one article or an entire
+ * family, and that is the difference between a small promotion and a large
+ * one.
+ */
+.promotion-row__target-kind,
+.promotion-row__discount-kind {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.promotion-row__discount-value {
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.promotion-row__dates {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/*
+ * A floor for the actions column, so it is never squeezed to a column of
+ * single buttons stacked one per line. Above that floor the group wraps as it
+ * needs to: three buttons take two lines in a narrow column, which is a
+ * cheaper trade than making the whole table scroll on a screen where it
+ * otherwise fits.
+ */
+.promotion-row__actions-cell {
+  min-width: 13rem;
+}
+
+/*
+ * The lifecycle state, as a pill in the colours the summary counters use for
+ * the same three states. The state's name is always inside it, so the pill
+ * still says which state it is with the colour ignored.
+ */
+.promotion-status {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--status-accent);
+  border-radius: 999px;
+  background: var(--status-surface);
+  color: var(--status-accent);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.promotion-status--scheduled {
+  --status-accent: var(--color-status-scheduled);
+  --status-surface: var(--color-status-scheduled-surface);
+}
+
+.promotion-status--active {
+  --status-accent: var(--color-status-active);
+  --status-surface: var(--color-status-active-surface);
+}
+
+.promotion-status--finished {
+  --status-accent: var(--color-status-finished);
+  --status-surface: var(--color-status-finished-surface);
+}
+
+/*
+ * Validity is a different fact from status, so it is drawn as a different
+ * thing: a square chip outside the status palette, never a pill. An ACTIVE
+ * promotion whose dates have passed shows "Activa" beside "No vigente hoy",
+ * and the two must not look like two ways of saying one thing.
+ */
+.promotion-validity {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border: 1px dashed var(--validity-accent);
+  border-radius: var(--radius-sm);
+  background: var(--validity-surface);
+  color: var(--validity-accent);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.promotion-validity--valid {
+  --validity-accent: var(--color-validity);
+  --validity-surface: var(--color-validity-surface);
+}
+
+.promotion-validity--not-valid {
+  --validity-accent: var(--color-text-muted);
+  --validity-surface: var(--color-surface-sunken);
+}
+
+.promotion-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.promotion-action {
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.promotion-action:hover {
+  background: var(--color-surface-sunken);
+}
+
+/* The move that advances the lifecycle: one per row at most, and the one the
+   user came to the row for. */
+.promotion-action--primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.promotion-action--primary:hover {
+  border-color: var(--color-accent-strong);
+  background: var(--color-accent-strong);
+}
+
+/* Destructive, and drawn as such before it is pressed. */
+.promotion-action--danger {
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.promotion-action--danger:hover {
+  background: var(--color-danger);
+  color: var(--color-accent-contrast);
+}
+
+/*
+ * Stands where the buttons are on the other rows. Muted, because it is not an
+ * offer, and present, because an empty cell would look like something that
+ * failed to draw.
+ */
+.promotion-row__no-actions {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  text-wrap: pretty;
+}

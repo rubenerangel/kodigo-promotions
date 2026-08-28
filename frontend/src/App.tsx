@@ -1,3 +1,4 @@
+import { PromotionList } from './components/PromotionList'
 import { SummaryPanel } from './components/SummaryPanel'
 import { copy } from './copy/es'
 import './App.css'
@@ -20,10 +21,10 @@ function App() {
 
       <main className="app__main">
         <SummaryPanel />
-        {/* The promotion listing (task 5.2) and the promotion form (task 5.3)
-            mount here, as further children of this column. Nothing is drawn
-            for them yet: a placeholder would announce a feature that does not
-            exist. */}
+        <PromotionList />
+        {/* The promotion form (task 5.3) mounts here, as a further child of
+            this column. Nothing is drawn for it yet: a placeholder would
+            announce a feature that does not exist. */}
       </main>
     </div>
   )
