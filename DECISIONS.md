@@ -128,4 +128,12 @@ Criterio para este documento: se registra una decision cuando existio una altern
 ## 7. Seguridad y alcance
 
 - No se versionan contraseñas, claves, tokens ni archivos `.env`; `.env.example` contiene solo nombres y valores locales no sensibles.
-- Se excluyen del seguimiento `.claude/`, `.github/`, `openspec/`, `CGPT-PLAN_IMPLEMENTACION_PRUEBA_TECNICA.md`, `prueba técnica.md` y `workflow.md`.
+- Se excluyen del seguimiento `.claude/`, `.github/` salvo `.github/workflows/`, `openspec/`, `CGPT-PLAN_IMPLEMENTACION_PRUEBA_TECNICA.md`, `prueba técnica.md` y `workflow.md`.
+- **La exclusion de `.github/` se acoto para dejar pasar los workflows.** La regla se puso por el andamiaje de agentes que vive en ese directorio, pero excluia de mas: la integracion continua es un entregable declarado en `proposal.md` y GitHub solo la ejecuta si esta versionada, asi que un workflow ignorado habria sido un entregable existente en disco e inexistente en la entrega. *Alternativa descartada:* mantener `.github/` fuera y asumir que CI no se ejecuta. Es el mismo tipo de correccion que la de los directorios de escritura de Laravel: una regla general que tambien se llevaba por delante lo que si debia versionarse.
+
+## 8. Integracion continua
+
+- Los cuatro trabajos van encadenados con `needs` en lugar de en paralelo. *Alternativa descartada:* ejecutarlos a la vez, que termina antes. *Motivo:* un fallo de estilo no justifica gastar una base de datos ni una construccion de imagenes, y encadenarlos hace que el primer error que aparece sea el mas barato de leer, en vez de un informe con cuatro fallos entre los que hay que averiguar cual es la causa.
+- **`composer install` corre con los scripts activados, sin `--no-scripts`.** `php artisan test` lo aporta Collision, que es una dependencia de desarrollo, y sin `package:discover` el comando no llega a existir: el trabajo fallaba con `Command "test" is not defined`. Detectado ejecutando la invocacion exacta del workflow antes de darla por buena.
+- La suite de CI corre contra `postgres:17-alpine`, la misma version mayor que usa Compose. *Motivo:* probar contra otro motor dejaria sin verificar justamente lo que depende de el, como el `count(*) FILTER` del resumen o la intercalacion `es-x-icu` del catalogo.
+- La base `promotions_test` se crea con un paso explicito del workflow. En Compose la crea un script montado en `/docker-entrypoint-initdb.d`, que en CI no interviene porque PostgreSQL se levanta como contenedor de servicio de GitHub y no desde el compose file.
