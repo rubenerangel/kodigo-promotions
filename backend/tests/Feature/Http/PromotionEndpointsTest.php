@@ -15,10 +15,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 /**
- * End to end behaviour of the promotion endpoints.
+ * End to end behaviour of the promotion endpoints on their successful paths.
  *
- * Mapping domain conflicts to 404 and 409 is a later task, so nothing here
- * asserts those statuses: today a rejected edit still surfaces as a 500.
+ * The rejected ones live in ApiErrorMappingTest, which covers the conflict and
+ * not found translations.
  */
 class PromotionEndpointsTest extends TestCase
 {

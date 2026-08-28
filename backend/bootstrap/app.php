@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\HealthController;
+use App\Http\Exceptions\DomainExceptionRenderer;
+use App\Http\Responses\ApiErrorResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -27,4 +29,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Wired by hand because this file is the composition root: the
+        // renderer takes its collaborator through the constructor, so no
+        // service lookup happens while a request is being handled. The class
+        // stays autowirable all the same, and the test resolves it from the
+        // container to prove it.
+        $exceptions->render(new DomainExceptionRenderer(new ApiErrorResponse));
     })->create();
