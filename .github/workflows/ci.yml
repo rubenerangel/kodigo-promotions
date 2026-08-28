@@ -241,6 +241,19 @@ jobs:
             esac
           done
 
-      # TODO(6.5): esperar disponibilidad y fallar si /health no devuelve 200.
+      # La peticion sale del runner y entra por el puerto publicado, no desde
+      # dentro del contenedor como el healthcheck de Compose: asi se comprueba
+      # tambien el mapeo de puertos, que es el camino que recorre quien usa la
+      # aplicacion. Ver scripts/wait-for-health.sh.
+      - name: Esperar a que la API responda
+        run: bash scripts/wait-for-health.sh http://localhost:8000/health 180
+
+      # Solo si algo ha fallado antes. Sin esto, el informe de un smoke test
+      # roto es "no devolvio 200" y hay que reproducirlo en local para saber por
+      # que; con esto, el motivo esta en la propia ejecucion.
+      - name: Volcar los logs si el stack no llego a servir
+        if: failure()
+        run: docker compose logs --no-color --tail 200
+
       # TODO(6.6): ejecutar `docker compose down` siempre, tambien si el job
       # falla antes de llegar al final.
