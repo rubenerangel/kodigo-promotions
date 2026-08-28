@@ -1,0 +1,214 @@
+name: CI
+
+# Los cuatro trabajos van encadenados con `needs`, no en paralelo. Es mas lento
+# a proposito: un fallo de estilo no merece gastar una base de datos ni una
+# construccion de imagenes, y el primer error que aparece es el mas barato de
+# leer. Ejecutarlos a la vez adelantaria unos minutos a cambio de informes en
+# los que hay que averiguar cual de los cuatro fallos es la causa.
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+# Una serie por rama: un push nuevo cancela la ejecucion anterior, que ya esta
+# validando un codigo que nadie va a integrar.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PHP_VERSION: '8.4'
+  NODE_VERSION: '22'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # La imagen del backend instala con --no-dev, asi que no trae ni Pint ni
+      # PHPStan: el analisis estatico necesita PHP en el runner y no sirve
+      # reutilizar el contenedor.
+      - name: Instalar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_pgsql, bcmath, intl, zip
+          coverage: none
+
+      - name: Cache de Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      # Sin --no-scripts a proposito: package:discover tiene que registrar los
+      # proveedores de las dependencias de desarrollo. Puede correr porque los
+      # directorios de escritura de Laravel estan versionados; cuando no lo
+      # estuvieron, un clon limpio ni siquiera arrancaba.
+      - name: Instalar dependencias PHP
+        working-directory: backend
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Estilo del backend (Pint)
+        working-directory: backend
+        run: vendor/bin/pint --test
+
+      - name: Analisis estatico del backend (PHPStan)
+        working-directory: backend
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Instalar dependencias del frontend
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      # `pnpm lint` lleva --deny-warnings: sin el, oxlint termina con codigo 0
+      # aunque emita avisos y este paso no podria fallar nunca.
+      - name: Estilo del frontend (oxlint)
+        working-directory: frontend
+        run: pnpm lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint
+
+    services:
+      postgres:
+        # La misma version mayor que usa Compose: probar contra otra dejaria
+        # sin verificar justamente las partes que dependen del motor, como el
+        # `count(*) FILTER` del resumen o la intercalacion es-x-icu del catalogo.
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: promotions
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_pgsql, bcmath, intl, zip
+          coverage: none
+
+      - name: Cache de Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      # `php artisan test` lo aporta Collision, que es una dependencia de
+      # desarrollo: con --no-scripts el comando no llega a existir y este
+      # trabajo fallaria con "Command test is not defined".
+      - name: Instalar dependencias PHP
+        working-directory: backend
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      # En Compose esta base la crea un script montado en
+      # /docker-entrypoint-initdb.d, que aqui no existe porque el servicio se
+      # levanta como contenedor de GitHub y no desde el compose file.
+      - name: Crear la base de pruebas
+        run: PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -c 'CREATE DATABASE promotions_test;'
+
+      - name: Preparar entorno de Laravel
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+      # phpunit.xml fija DB_CONNECTION y DB_DATABASE=promotions_test, pero no
+      # el host ni las credenciales: esos llegan por entorno.
+      - name: Ejecutar la suite
+        working-directory: backend
+        run: php artisan test
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Instalar dependencias del frontend
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      # `pnpm build` es `tsc -b && vite build`: el chequeo de tipos actua aqui
+      # como puerta de calidad, no solo el empaquetado.
+      - name: Construir el frontend
+        working-directory: frontend
+        run: pnpm build
+
+      - name: Comprobar que el artefacto existe
+        working-directory: frontend
+        run: test -f dist/index.html && ls dist/assets
+
+  smoke-test:
+    name: Smoke test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO(6.3): validar explicitamente cada variable requerida antes de
+      # levantar Compose.
+      # TODO(6.4): construir las imagenes de backend y frontend y levantar el
+      # stack.
+      # TODO(6.5): esperar disponibilidad y fallar si /health no devuelve 200.
+      # TODO(6.6): ejecutar `docker compose down` siempre, tambien si el job
+      # falla antes de llegar al final.
+      #
+      # Hasta entonces el trabajo hace la unica comprobacion real que le
+      # corresponde ya y que no pertenece a ninguna de las cuatro anteriores:
+      # que el compose file se interpreta sin errores. Se deja haciendo algo
+      # cierto en lugar de un paso vacio, porque una comprobacion en verde que
+      # no comprueba nada es peor que no tenerla.
+      - name: Validar el compose file
+        run: docker compose config --quiet

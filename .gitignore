@@ -1,5 +1,10 @@
 .claude/
-.github/
+# Todo .github salvo los workflows. La regla general excluia de mas: se puso
+# por el andamiaje de agentes que vive aqui, pero tambien dejaba fuera la
+# integracion continua, que si forma parte de la entrega y que GitHub solo
+# ejecuta si esta versionada.
+.github/*
+!.github/workflows/
 openspec/
 workflow.md
 .env

@@ -51,7 +51,7 @@ No se debe implementar antes de aprobar el plan. No se debe declarar terminado u
 - Después de completar cada tarea del archivo `tasks.md`, ejecutar las validaciones definidas para esa tarea y crear un commit independiente.
 - Todos los commits deben respetar Conventional Commits, usando el tipo y alcance más específico disponible; por ejemplo: `feat(backend): bootstrap Laravel API`.
 - No mezclar varias tareas en un mismo commit.
-- No incluir en commits ni mantener bajo seguimiento estas rutas y archivos: `.claude/`, `.github/`, `openspec/`, `CGPT-PLAN_IMPLEMENTACION_PRUEBA_TECNICA.md`, `prueba técnica.md` y `workflow.md`.
+- No incluir en commits ni mantener bajo seguimiento estas rutas y archivos: `.claude/`, `.github/` salvo `.github/workflows/`, `openspec/`, `CGPT-PLAN_IMPLEMENTACION_PRUEBA_TECNICA.md`, `prueba técnica.md` y `workflow.md`. La integración continua sí forma parte de la entrega, y GitHub solo la ejecuta si está versionada.
 - Revisar `git status` y el diff antes de cada commit para confirmar que solo contiene los archivos de la tarea actual.
 
 ## Contenido mínimo del plan
