@@ -11,5 +11,8 @@ final readonly class PromotionSummary
         public int $scheduled,
         public int $active,
         public int $finished,
+        // Counted by dates alone, so it overlaps the status counters instead
+        // of partitioning them.
+        public int $validToday,
     ) {}
 }

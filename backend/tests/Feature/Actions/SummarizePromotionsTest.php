@@ -8,6 +8,7 @@ use App\Enums\DiscountType;
 use App\Enums\PromotionStatus;
 use App\Models\Product;
 use App\Models\Promotion;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -18,6 +19,10 @@ class SummarizePromotionsTest extends TestCase
 
     public function test_it_counts_promotions_of_every_status(): void
     {
+        // Frozen inside the seeded date range, so validToday does not depend
+        // on the day the suite happens to run.
+        $this->travelTo(CarbonImmutable::parse('2026-09-15'));
+
         // Deliberately different amounts so a swapped counter is visible.
         $this->promotions(PromotionStatus::SCHEDULED, 3);
         $this->promotions(PromotionStatus::ACTIVE, 2);
@@ -29,10 +34,17 @@ class SummarizePromotionsTest extends TestCase
         $this->assertSame(3, $summary->scheduled);
         $this->assertSame(2, $summary->active);
         $this->assertSame(1, $summary->finished);
+
+        // Every seeded promotion runs on the frozen date, across all three
+        // statuses: the validity counter overlaps them rather than splitting
+        // them.
+        $this->assertSame(6, $summary->validToday);
     }
 
     public function test_a_status_without_promotions_counts_zero_instead_of_being_omitted(): void
     {
+        $this->travelTo(CarbonImmutable::parse('2026-09-15'));
+
         $this->promotions(PromotionStatus::ACTIVE, 2);
 
         $summary = $this->action()();
@@ -40,6 +52,7 @@ class SummarizePromotionsTest extends TestCase
         $this->assertSame(0, $summary->scheduled);
         $this->assertSame(2, $summary->active);
         $this->assertSame(0, $summary->finished);
+        $this->assertSame(2, $summary->validToday);
     }
 
     public function test_every_counter_is_zero_when_there_are_no_promotions(): void
@@ -49,6 +62,7 @@ class SummarizePromotionsTest extends TestCase
         $this->assertSame(0, $summary->scheduled);
         $this->assertSame(0, $summary->active);
         $this->assertSame(0, $summary->finished);
+        $this->assertSame(0, $summary->validToday);
     }
 
     public function test_it_resolves_the_summary_in_a_single_query(): void
