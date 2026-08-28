@@ -14,9 +14,9 @@ export type ApiResource<T> = {
   reload: () => void
 }
 
-/** What a finished read left behind, tagged with the attempt that produced it. */
+/** What a finished read left behind, tagged with the run that produced it. */
 type Settled<T> = {
-  attempt: number
+  run: string
   data: T | null
   error: unknown
 }
@@ -46,10 +46,24 @@ type Settled<T> = {
  * `load` is read as a dependency, so it must be stable: define it at module
  * level or wrap it in `useCallback`. An inline arrow would make the effect run
  * on every render and never stop loading.
+ *
+ * `revision` is the second way a read is asked for again, and it is the one a
+ * caller outside the component uses. `reload` answers a retry button, which
+ * belongs to whoever is showing the failure; `revision` answers "the data you
+ * are showing is no longer what the server holds", which is something only the
+ * screen that just wrote knows. Both funnel into the same run identity below,
+ * so a bump behaves exactly like a retry and there is only one path to keep
+ * correct.
  */
-export function useApiResource<T>(load: ResourceLoader<T>): ApiResource<T> {
+export function useApiResource<T>(load: ResourceLoader<T>, revision = 0): ApiResource<T> {
   const [attempt, setAttempt] = useState(0)
   const [settled, setSettled] = useState<Settled<T> | null>(null)
+
+  // The two reasons to read, as one value. Comparing this against what the
+  // settled result carries is what makes a read triggered by a revision bump
+  // report `isLoading` while it is in flight, instead of leaving the previous
+  // answer on screen looking settled.
+  const run = `${revision}:${attempt}`
 
   useEffect(() => {
     const controller = new AbortController()
@@ -57,7 +71,7 @@ export function useApiResource<T>(load: ResourceLoader<T>): ApiResource<T> {
     load({ signal: controller.signal })
       .then((data) => {
         if (!controller.signal.aborted) {
-          setSettled({ attempt, data, error: null })
+          setSettled({ run, data, error: null })
         }
       })
       .catch((error: unknown) => {
@@ -65,14 +79,14 @@ export function useApiResource<T>(load: ResourceLoader<T>): ApiResource<T> {
           // The payload is dropped along with the failed read: keeping the
           // previous one would leave counts on screen that nothing has
           // confirmed still hold.
-          setSettled({ attempt, data: null, error })
+          setSettled({ run, data: null, error })
         }
       })
 
     return () => controller.abort()
-  }, [load, attempt])
+  }, [load, run])
 
-  const isSettled = settled !== null && settled.attempt === attempt
+  const isSettled = settled !== null && settled.run === run
 
   const reload = useCallback(() => setAttempt((previous) => previous + 1), [])
 

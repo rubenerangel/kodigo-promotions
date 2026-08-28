@@ -61,6 +61,35 @@
   background: var(--color-surface);
 }
 
+/* A field that is wrong is outlined as well as told so in words underneath.
+   The border is the fast signal and the sentence is the one that survives
+   greyscale, colour blindness and a screen reader. */
+.promotion-form__control[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.promotion-form__control:disabled {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.promotion-form__issue {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger-strong);
+}
+
+/* Sits at the top of the form and says how many fields to look for. */
+.promotion-form__alert {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-surface);
+  color: var(--color-danger-strong);
+}
+
 .promotion-form__hint {
   margin: 0;
   font-size: var(--font-size-sm);
@@ -106,9 +135,16 @@
   color: var(--color-accent-contrast);
 }
 
-.promotion-form__button--primary:hover {
+.promotion-form__button--primary:hover:not(:disabled) {
   border-color: var(--color-accent-strong);
   background: var(--color-accent-strong);
+}
+
+/* Dimmed while the write is in flight, and not merely inert: a button that
+   stops responding without looking any different reads as broken. */
+.promotion-form__button:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 .promotion-form__notice {

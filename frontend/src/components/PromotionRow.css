@@ -139,8 +139,19 @@
     border-color 150ms ease;
 }
 
-.promotion-action:hover {
+.promotion-action:hover:not(:disabled) {
   background: var(--color-surface-sunken);
+}
+
+/*
+ * Every action button on the screen is held shut while one write runs, so this
+ * is the ordinary state of most of them for a moment rather than a rare one. It
+ * is dimmed so the row does not look merely unresponsive, and the button that
+ * is actually working says so in its own label instead.
+ */
+.promotion-action:disabled {
+  opacity: 0.55;
+  cursor: progress;
 }
 
 /* The move that advances the lifecycle: one per row at most, and the one the
@@ -151,7 +162,7 @@
   color: var(--color-accent-contrast);
 }
 
-.promotion-action--primary:hover {
+.promotion-action--primary:hover:not(:disabled) {
   border-color: var(--color-accent-strong);
   background: var(--color-accent-strong);
 }
@@ -163,7 +174,7 @@
   color: var(--color-danger);
 }
 
-.promotion-action--danger:hover {
+.promotion-action--danger:hover:not(:disabled) {
   background: var(--color-danger);
   color: var(--color-accent-contrast);
 }

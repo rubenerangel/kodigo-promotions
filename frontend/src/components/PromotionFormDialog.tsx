@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { PromotionForm } from './PromotionForm'
 import { copy } from '../copy/es'
 import type { PromotionFormRequest } from '../domain/promotionForm'
+import type { PromotionSubmitOutcome } from '../domain/promotionFormIssues'
 import type { PromotionPayload } from '../types/api'
 import './PromotionFormDialog.css'
 
@@ -11,7 +12,8 @@ type PromotionFormDialogProps = {
   /** The form to show, or `null` while the dialog is closed. */
   request: PromotionFormRequest | null
   onClose: () => void
-  onSubmit: (payload: PromotionPayload) => void
+  /** Passed straight through to the form, which acts on what it answers. */
+  onSubmit: (payload: PromotionPayload) => Promise<PromotionSubmitOutcome>
 }
 
 /**

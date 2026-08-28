@@ -1,3 +1,5 @@
+import { NAME_MAX_LENGTH } from '../domain/promotionForm'
+
 /**
  * Every word the interface shows, in Spanish, in one place.
  *
@@ -136,6 +138,51 @@ export const copy = {
      */
     forPromotion: (action: string, promotionName: string) =>
       `${action} la promoción ${promotionName}`,
+    /**
+     * Announced while a write is in flight. Every action button is disabled
+     * for the duration, and a button that stops responding without saying why
+     * reads as broken rather than as busy.
+     */
+    running: 'Enviando…',
+  },
+
+  /**
+   * The question asked before an action that cannot be undone.
+   *
+   * Each one names the promotion and says what is lost, because "¿Seguro?" over
+   * a row the dialog has just covered is a question nobody can answer.
+   * `domain/promotionConfirmation.ts` decides which actions get one.
+   */
+  confirm: {
+    cancel: 'Cancelar',
+    finish: {
+      title: 'Finalizar la promoción',
+      question: (promotionName: string) =>
+        `¿Finalizar la promoción ${promotionName}? Una promoción finalizada no admite cambios, no se puede eliminar y no se puede reabrir.`,
+      confirm: 'Finalizar',
+    },
+    delete: {
+      title: 'Eliminar la promoción',
+      question: (promotionName: string) =>
+        `¿Eliminar la promoción ${promotionName}? Se borra de forma definitiva y no se puede deshacer.`,
+      confirm: 'Eliminar',
+    },
+  },
+
+  /**
+   * What the screen says after a write, so no operation ends in silence.
+   *
+   * Every one names the promotion. A bare "Hecho" after a click on a row of six
+   * leaves open which of the six it was about, and the row that would have
+   * answered that may be the one that just disappeared.
+   */
+  notices: {
+    created: (promotionName: string) => `Se creó la promoción ${promotionName}.`,
+    updated: (promotionName: string) => `Se guardaron los cambios de la promoción ${promotionName}.`,
+    activated: (promotionName: string) => `La promoción ${promotionName} pasó a estar activa.`,
+    finished: (promotionName: string) => `La promoción ${promotionName} quedó finalizada.`,
+    deleted: (promotionName: string) => `Se eliminó la promoción ${promotionName}.`,
+    dismiss: 'Cerrar el aviso',
   },
 
   /**
@@ -157,6 +204,45 @@ export const copy = {
     createSubmit: 'Crear promoción',
     editSubmit: 'Guardar cambios',
     cancel: 'Cancelar',
+    /** Replaces the submit label while the request is in flight. */
+    submitting: 'Guardando…',
+
+    /**
+     * One sentence per rule the form checks, and the only place those rules are
+     * put into words. `domain/promotionFormIssues.ts` decides which rule broke
+     * and answers a code; this decides how to say it, for the same reason the
+     * API's English `message` never reaches the screen.
+     */
+    issues: {
+      nameRequired: 'Escribe un nombre para la promoción.',
+      nameTooLong: `El nombre no puede tener más de ${NAME_MAX_LENGTH} caracteres.`,
+      targetRequired: 'Elige a qué se aplica la promoción.',
+      discountValueRequired: 'Indica el valor del descuento.',
+      discountValueNotNumeric: 'El valor del descuento tiene que ser un número.',
+      discountValueNotPositive: 'El valor del descuento tiene que ser mayor que 0.',
+      discountValueOutOfPercentageRange: 'Un porcentaje tiene que estar entre 1 y 100.',
+      startDateRequired: 'Elige la fecha de inicio.',
+      endDateRequired: 'Elige la fecha de fin.',
+      endDateNotAfterStart: 'La fecha de fin tiene que ser posterior a la de inicio.',
+      /**
+       * The API refused a value for a rule the form does not model. The wording
+       * says exactly that and no more: inventing a reason would be a guess, and
+       * the realistic case — an option deleted from the catalogue since the form
+       * opened — is not something the user can be told from here.
+       */
+      rejected: 'El servidor no aceptó este valor. Revísalo e inténtalo de nuevo.',
+    },
+
+    /**
+     * Announced when a submit is refused, since the messages themselves appear
+     * beside controls that may be off screen. Singular and plural are written
+     * out rather than assembled, because "1 campos" is the kind of detail that
+     * makes an interface look unfinished.
+     */
+    issueSummary: (count: number) =>
+      count === 1
+        ? 'Hay 1 campo con errores. Revísalo e inténtalo de nuevo.'
+        : `Hay ${count} campos con errores. Revísalos e inténtalo de nuevo.`,
 
     /**
      * The accessible name of the corner button. Said in full because it is
@@ -186,8 +272,10 @@ export const copy = {
 
     /**
      * Says the accepted range before it is broken, which is help and not a
-     * validation message: the messages for a value that is already wrong are
-     * task 5.4. A numeric box with invisible bounds is a guess.
+     * validation message: `issues` above is what a value that is already wrong
+     * gets told. Both are read out together, because the hint is what says how
+     * to fix what the message complains about. A numeric box with invisible
+     * bounds is a guess.
      */
     discountValueHints: {
       PERCENTAGE: 'Un porcentaje entre 1 y 100.',

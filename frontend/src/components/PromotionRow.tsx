@@ -27,12 +27,25 @@ function actionClassName(action: PromotionAction): string {
 type PromotionRowProps = {
   promotion: Promotion
   /**
-   * Runs when an action button is pressed. The listing has nothing to hand it
-   * yet: the calls to the API are task 5.5 and the confirmations are 5.4, so
-   * until then the buttons are drawn, are reachable, and do nothing. The seam
-   * is declared here so wiring it later changes the caller and not this row.
+   * Runs when an action button is pressed. The row names what was pressed and
+   * on which promotion; whether that asks a question first, and what it sends,
+   * belongs to the screen above.
    */
   onAction?: (action: PromotionAction, promotion: Promotion) => void
+  /**
+   * A write is in flight somewhere on the screen, so no button on this row
+   * accepts a press.
+   *
+   * ALL OF THEM, NOT ONLY THE ONE THAT WAS PRESSED. A second write started
+   * while the first is running would race the refresh that follows it, and the
+   * listing would settle on whichever answer happened to arrive last. The
+   * operations here are short and are not the kind anyone performs in parallel,
+   * so waiting costs nothing next to a screen that ends up describing a state
+   * the server was never in.
+   */
+  disabled?: boolean
+  /** The action running on this row, if the one in flight is this row's. */
+  runningAction?: PromotionAction | null
 }
 
 /**
@@ -51,7 +64,12 @@ type PromotionRowProps = {
  *   today inside them, so if the two columns looked alike the screen would be
  *   claiming they are the same fact.
  */
-export function PromotionRow({ promotion, onAction }: PromotionRowProps) {
+export function PromotionRow({
+  promotion,
+  onAction,
+  disabled = false,
+  runningAction = null,
+}: PromotionRowProps) {
   const actions = promotionActionsFor(promotion.status)
 
   return (
@@ -119,13 +137,18 @@ export function PromotionRow({ promotion, onAction }: PromotionRowProps) {
                 key={action}
                 type="button"
                 className={actionClassName(action)}
+                disabled={disabled}
+                // Marks only the button whose request is actually running. Six
+                // buttons all announcing that they are busy would be lying
+                // about five of them.
+                aria-busy={runningAction === action}
                 // The visible label is the verb alone, because the row it sits
                 // in supplies the rest. Heard on its own it would not, so the
                 // accessible name names the promotion too.
                 aria-label={copy.actions.forPromotion(copy.actions[action], promotion.name)}
                 onClick={() => onAction?.(action, promotion)}
               >
-                {copy.actions[action]}
+                {runningAction === action ? copy.actions.running : copy.actions[action]}
               </button>
             ))}
           </div>

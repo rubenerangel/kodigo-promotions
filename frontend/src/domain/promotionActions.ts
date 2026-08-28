@@ -52,3 +52,32 @@ const ACTIONS_BY_STATUS: Record<PromotionStatus, readonly PromotionAction[]> = {
 export function promotionActionsFor(status: PromotionStatus): readonly PromotionAction[] {
   return ACTIONS_BY_STATUS[status]
 }
+
+/**
+ * The two actions that move the lifecycle, as opposed to editing the data or
+ * removing the row.
+ *
+ * Named as a type of its own so the function below can be total: asking which
+ * status "editar" moves a promotion to is not a question with an answer, and
+ * this is what keeps it from being asked.
+ */
+export type PromotionTransitionAction = 'activate' | 'finish'
+
+/**
+ * Where each lifecycle action leaves the promotion.
+ *
+ * The only place the interface names a target status. `PATCH
+ * /promotions/{id}/status` takes the state to move to, not the move to make,
+ * so the translation has to happen somewhere; here it happens once, beside the
+ * table that decides when each action is offered, and `PromotionStatus::
+ * canTransitionTo` re-checks it on arrival.
+ */
+const TRANSITION_TARGETS: Record<PromotionTransitionAction, PromotionStatus> = {
+  activate: 'ACTIVE',
+  finish: 'FINISHED',
+}
+
+/** The status a lifecycle action asks the API to move the promotion to. */
+export function promotionStatusAfter(action: PromotionTransitionAction): PromotionStatus {
+  return TRANSITION_TARGETS[action]
+}

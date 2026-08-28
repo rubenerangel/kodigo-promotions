@@ -22,6 +22,11 @@
 }
 
 .app__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   padding-block: var(--space-4);
 }
 
@@ -57,7 +62,14 @@
   cursor: pointer;
 }
 
-.app__create:hover {
+.app__create:hover:not(:disabled) {
   border-color: var(--color-accent-strong);
   background: var(--color-accent-strong);
+}
+
+/* Held shut while a write is running, so a promotion cannot be created on top
+   of an operation whose refresh has not landed yet. */
+.app__create:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }

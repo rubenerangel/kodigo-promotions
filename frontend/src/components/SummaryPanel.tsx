@@ -23,8 +23,21 @@ const VALIDITY_HINT_ID = 'summary-validity-hint'
  * absence of one, and replacing them with "no hay nada todavía" would hide the
  * fact that the screen did read the data successfully.
  */
-export function SummaryPanel() {
-  const { data, error, isLoading, reload } = useApiResource(fetchPromotionSummary)
+type SummaryPanelProps = {
+  /**
+   * Bumped by the screen after every write.
+   *
+   * The counters are always re-read and never adjusted by hand. They are
+   * computed by one aggregate query in the database, and a status change moves
+   * more than the promotion it touched: recomputing them here from the row the
+   * API just answered would be a second implementation of the summary, living
+   * in the browser and free to drift from the first.
+   */
+  revision?: number
+}
+
+export function SummaryPanel({ revision = 0 }: SummaryPanelProps) {
+  const { data, error, isLoading, reload } = useApiResource(fetchPromotionSummary, revision)
 
   return (
     <section className="summary" aria-labelledby="summary-title" aria-busy={isLoading}>

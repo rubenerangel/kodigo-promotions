@@ -6,6 +6,7 @@ import { PromotionRow } from './PromotionRow'
 import { copy } from '../copy/es'
 import { resolveErrorMessage } from '../copy/resolveErrorMessage'
 import { useApiResource } from '../hooks/useApiResource'
+import type { PendingWrite } from '../hooks/usePromotionWrites'
 import { fetchPromotions } from '../services/promotions'
 import './PromotionList.css'
 
@@ -18,6 +19,13 @@ type PromotionListProps = {
    * is what keeps the dialog out of the table.
    */
   onAction?: (action: PromotionAction, promotion: Promotion) => void
+  /**
+   * Bumped by the screen after every write. The listing owns its own read and
+   * keeps owning it; this only says that what it is showing has been overtaken.
+   */
+  revision?: number
+  /** The write in flight, so the row that started it can say so. */
+  pending?: PendingWrite | null
 }
 
 /**
@@ -37,8 +45,8 @@ type PromotionListProps = {
  * are an answer; an empty table is not, and a header row over nothing looks
  * like a listing that failed rather than one with nothing to list yet.
  */
-export function PromotionList({ onAction }: PromotionListProps) {
-  const { data, error, isLoading, reload } = useApiResource(fetchPromotions)
+export function PromotionList({ onAction, revision = 0, pending = null }: PromotionListProps) {
+  const { data, error, isLoading, reload } = useApiResource(fetchPromotions, revision)
 
   let body: ReactNode
 
@@ -87,7 +95,17 @@ export function PromotionList({ onAction }: PromotionListProps) {
           </thead>
           <tbody>
             {data.map((promotion) => (
-              <PromotionRow key={promotion.id} promotion={promotion} onAction={onAction} />
+              <PromotionRow
+                key={promotion.id}
+                promotion={promotion}
+                onAction={onAction}
+                disabled={pending !== null}
+                runningAction={
+                  pending !== null && pending.kind === 'row' && pending.promotionId === promotion.id
+                    ? pending.action
+                    : null
+                }
+              />
             ))}
           </tbody>
         </table>
