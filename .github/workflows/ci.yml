@@ -197,18 +197,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # TODO(6.3): validar explicitamente cada variable requerida antes de
-      # levantar Compose.
+      # Antes de levantar nada: las variables se comprueban contra el propio
+      # compose file, no contra una lista escrita a mano que se quedaria atras
+      # en cuanto alguien anadiese una. Ver scripts/check-env.sh.
+      - name: Validar las variables de entorno
+        run: bash scripts/check-env.sh
+
+      - name: Validar el compose file
+        run: docker compose config --quiet
+
       # TODO(6.4): construir las imagenes de backend y frontend y levantar el
       # stack.
       # TODO(6.5): esperar disponibilidad y fallar si /health no devuelve 200.
       # TODO(6.6): ejecutar `docker compose down` siempre, tambien si el job
       # falla antes de llegar al final.
-      #
-      # Hasta entonces el trabajo hace la unica comprobacion real que le
-      # corresponde ya y que no pertenece a ninguna de las cuatro anteriores:
-      # que el compose file se interpreta sin errores. Se deja haciendo algo
-      # cierto en lugar de un paso vacio, porque una comprobacion en verde que
-      # no comprueba nada es peor que no tenerla.
-      - name: Validar el compose file
-        run: docker compose config --quiet
