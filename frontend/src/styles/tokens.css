@@ -3,9 +3,9 @@
  *
  * Every colour, space and size the interface uses is named here, so a value is
  * changed in one place and the whole screen follows. The status colours matter
- * most: the listing (task 5.2) shows the same three states, and reading them
- * from these variables is what keeps a SCHEDULED counter and a SCHEDULED row
- * the same colour instead of two colours that merely started out alike.
+ * most: the counters and the listing show the same three states, and reading
+ * them from these variables is what keeps a SCHEDULED counter and a SCHEDULED
+ * row the same colour instead of two colours that merely started out alike.
  *
  * Colour is never the only carrier of meaning here. Each status token comes
  * with a surface and a text pair, and every place that uses one also prints
