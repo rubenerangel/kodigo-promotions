@@ -4,12 +4,17 @@ namespace App\Models;
 
 use App\Enums\DiscountType;
 use App\Enums\PromotionStatus;
+use Database\Factories\PromotionFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Promotion extends Model
 {
+    /** @use HasFactory<PromotionFactory> */
+    use HasFactory;
+
     /** @var list<string> */
     protected $fillable = [
         'name',
