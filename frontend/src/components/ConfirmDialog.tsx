@@ -52,6 +52,36 @@ export function ConfirmDialog({ request, onCancel, onConfirm }: ConfirmDialogPro
     }
   }, [request])
 
+  /**
+   * The `close` event, once it is certain it is about the question on screen.
+   *
+   * Escape closes a modal dialog without asking anything, and that has to mean
+   * the same as pressing "Cancelar", so both ways out of the dialog end here
+   * and the state cannot be left believing the question is still open.
+   *
+   * WHY THE EVENT IS NOT TAKEN AT FACE VALUE.
+   *
+   * It does not arrive with the `close()` that caused it. The element queues
+   * it and it is dispatched in a later task, and by then the screen may have
+   * opened the question again, for the same row or another one. That event is
+   * the echo of a dialog that no longer exists, and answering it would cancel
+   * the question that is on screen a few milliseconds after it appeared, with
+   * nobody having asked for that. It was measured happening: `showModal` and,
+   * six milliseconds later, a `close()` no click accounts for.
+   *
+   * A dialog that is open right now is one nobody has closed, which is what
+   * makes `open` the thing to read: false means this event is the current
+   * question being dismissed, true means it is an echo and there is nothing to
+   * answer.
+   */
+  function handleClose(): void {
+    if (dialogRef.current?.open === true) {
+      return
+    }
+
+    onCancel()
+  }
+
   const words = request === null ? null : copy.confirm[request.action]
 
   return (
@@ -60,10 +90,7 @@ export function ConfirmDialog({ request, onCancel, onConfirm }: ConfirmDialogPro
       ref={dialogRef}
       aria-labelledby={TITLE_ID}
       aria-describedby={QUESTION_ID}
-      // Escape closes a modal dialog without asking anything, and that has to
-      // mean the same as pressing "Cancelar". Wiring both here is what keeps
-      // the key from leaving the screen believing the question is still open.
-      onClose={onCancel}
+      onClose={handleClose}
     >
       {request !== null && words !== null && (
         <div className="confirm__panel">
