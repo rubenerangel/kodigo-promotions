@@ -64,6 +64,7 @@ Criterio para este documento: se registra una decision cuando existio una altern
 - PostgreSQL declara un healthcheck con `pg_isready`, y el arranque del backend queda condicionado a que ese healthcheck pase, para evitar fallos de conexion en el primer arranque.
 - La persistencia usa un volumen nombrado, de modo que `docker compose down` conserva los datos y `docker compose down -v` los descarta.
 - Las migraciones se ejecutan en el entrypoint del backend porque `migrate --force` es idempotente.
+- **El entrypoint vuelca la configuracion inyectada al `.env` del contenedor antes de arrancar el servidor.** No es redundante con las variables de entorno: `php artisan serve` solo reenvia una lista blanca de variables al proceso que atiende las peticiones, de modo que `DB_HOST` y el resto nunca llegan a el y la aplicacion caeria a los valores de `.env.example`, intentando conectar con PostgreSQL en `127.0.0.1`. Los comandos de Artisan lanzados desde el entrypoint si ven el entorno, y por eso las migraciones funcionaban mientras cualquier peticion que tocara la base habria fallado. El fallo lo detecto `/health` en su primer arranque.
 - El catalogo de productos y categorias tambien se siembra en el arranque, con `db:seed --force` justo despues de migrar. Es seguro porque los seeders usan `firstOrCreate`: arranques repetidos no duplican filas ni consumen secuencias de id. El motivo es que el formulario de promociones necesita targets seleccionables; sin catalogo, un `docker compose up` desde volumen limpio deja la aplicacion inusable para quien la evalua.
 - El entrypoint genera `APP_KEY` solo cuando no existe ni en el entorno ni en el `.env` del contenedor. Compose siempre inyecta la variable, vacia cuando no se define, asi que comprobar unicamente el entorno regeneraba la clave en cada reinicio. Ademas la variable vacia se descarta con `unset` antes de arrancar, porque el Dotenv de Laravel nunca sobrescribe una variable ya presente y una cadena vacia ganaria sobre el valor del `.env`. Efecto lateral conocido: los comandos lanzados con `docker compose exec` heredan esa variable vacia, de modo que un `artisan` que dependa de cifrado debe ejecutarse con `unset APP_KEY` previo.
 - La base `promotions_test` que consume la suite se crea mediante un script de inicializacion montado en `/docker-entrypoint-initdb.d` del contenedor de PostgreSQL. La imagen lo ejecuta solo al inicializar un cluster nuevo, de modo que un ciclo limpio (`down -v` y `up`) deja el entorno listo para ejecutar las pruebas sin pasos manuales.
@@ -84,8 +85,10 @@ Criterio para este documento: se registra una decision cuando existio una altern
 
 ### Health check del contenedor backend
 
-- El healthcheck del contenedor backend apunta temporalmente a `/up`, el endpoint nativo de Laravel, porque `/health` se implementa en la tarea 3.7.
-- Debe migrarse a `/health` en esa tarea.
+- El healthcheck del contenedor backend consulta `/health`, no el `/up` nativo de Laravel, porque `/up` responde `200` sin comprobar la base de datos: el contenedor se declara sano unicamente cuando puede servir de verdad.
+- `/health` ejecuta una consulta real contra PostgreSQL y responde `200` o `503`. Una comprobacion de configuracion no bastaria: solo la consulta demuestra que el driver abre la conexion y el servidor contesta.
+- La ruta se registra fuera del grupo de middleware `web`, porque la monitorizacion la consulta de forma continua y el middleware de sesion abriria y persistiria una sesion en cada sondeo.
+- La prueba del `503` reconfigura la conexion hacia un host que no resuelve y la purga, de modo que falla el driver de verdad. *Alternativa descartada:* una interfaz con un doble que devuelva falso, que habria verificado que el controlador traduce un booleano, pero no que una caida real de PostgreSQL se capture.
 
 ## 6. Seguridad y alcance
 

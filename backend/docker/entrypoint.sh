@@ -12,9 +12,34 @@ until php -r 'exit(@fsockopen(getenv("DB_HOST"), (int) getenv("DB_PORT"), $e, $s
 done
 echo "[entrypoint] PostgreSQL is accepting connections."
 
-# Laravel requires a .env file to boot. Real environment variables injected by
-# Compose take precedence over its contents.
+# Laravel requires a .env file to boot.
 [ -f .env ] || cp .env.example .env
+
+# Copy the injected configuration into that file. This is not redundant with
+# the environment: `php artisan serve` forwards only a whitelist of variables
+# to the process that actually handles requests, so DB_HOST and friends never
+# reach it and the app would fall back to the .env.example defaults, trying to
+# reach PostgreSQL on 127.0.0.1. Artisan commands run here do see the
+# environment, which is why migrations succeed while requests fail.
+set_env_value() {
+    key="$1"
+    value="$2"
+
+    if grep -q "^${key}=" .env; then
+        sed -i "s|^${key}=.*|${key}=${value}|" .env
+    else
+        printf '%s=%s\n' "${key}" "${value}" >> .env
+    fi
+}
+
+for key in APP_ENV APP_DEBUG APP_URL DB_CONNECTION DB_HOST DB_PORT \
+    DB_DATABASE DB_USERNAME DB_PASSWORD FRONTEND_URL; do
+    eval "value=\${${key}:-}"
+
+    if [ -n "${value}" ]; then
+        set_env_value "${key}" "${value}"
+    fi
+done
 
 # Compose always injects APP_KEY, empty when the variable is not set. An empty
 # environment variable would win over the .env value, because Laravel's Dotenv
