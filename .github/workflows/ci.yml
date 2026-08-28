@@ -206,8 +206,41 @@ jobs:
       - name: Validar el compose file
         run: docker compose config --quiet
 
-      # TODO(6.4): construir las imagenes de backend y frontend y levantar el
-      # stack.
+      # Construir y levantar van en pasos separados, no en un `up --build`. Son
+      # dos fallos distintos —una imagen que no compila y un stack que no
+      # arranca— y fundirlos en un paso obliga a leer el log entero para saber
+      # cual de los dos ocurrio.
+      #
+      # Sin cache de capas: el runner empieza limpio en cada ejecucion, asi que
+      # la construccion vuelve a instalar dependencias de Composer y de pnpm.
+      # Es el precio de comprobar exactamente el artefacto que se desplegaria,
+      # y es el motivo por el que este trabajo va el ultimo de la cadena.
+      - name: Construir las imagenes
+        run: docker compose build
+
+      - name: Levantar el stack
+        run: docker compose up -d
+
+      # `up -d` termina en cuanto los contenedores arrancan, no cuando sirven,
+      # de modo que su codigo de salida no dice gran cosa. Esto comprueba lo
+      # unico que corresponde ya: que los tres servicios estan en marcha y
+      # ninguno se cayo nada mas nacer. Que ademas respondan es la 6.5.
+      - name: Comprobar que los tres servicios estan en marcha
+        run: |
+          docker compose ps
+          running="$(docker compose ps --services --status running | sort | tr '\n' ' ')"
+          echo "en marcha: $running"
+          for service in backend frontend postgres; do
+            case " $running " in
+              *" $service "*) ;;
+              *)
+                echo "::error::el servicio $service no esta en marcha"
+                docker compose logs "$service"
+                exit 1
+                ;;
+            esac
+          done
+
       # TODO(6.5): esperar disponibilidad y fallar si /health no devuelve 200.
       # TODO(6.6): ejecutar `docker compose down` siempre, tambien si el job
       # falla antes de llegar al final.
