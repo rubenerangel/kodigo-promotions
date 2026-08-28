@@ -120,6 +120,11 @@ Criterio para este documento: se registra una decision cuando existio una altern
 - **La guarda real contra la doble pulsacion es un `ref`, no el estado.** Dos clics despachados antes de que React vuelva a pintar leen ambos el estado como vacio; el atributo `disabled` hace el caso improbable y el `ref` lo hace imposible. Verificado por mutacion: sustituir el `ref` por la comprobacion sobre el estado crea dos promociones con una sola intencion.
 - **Ninguna escritura termina en silencio.** Cada una deja un aviso que nombra la promocion, con `role="alert"` cuando fallo y `role="status"` cuando funciono, y se descarta a mano y nunca por temporizador. Cuando el control que inicio la operacion ya no existe —una fila borrada, unos botones sustituidos por los del nuevo estado— el foco se lleva al aviso, porque de lo contrario caeria al `body` y quien navega por teclado tendria que empezar de nuevo desde arriba.
 
+### Puerta de calidad del frontend
+
+- **`pnpm lint` ejecuta `oxlint --deny-warnings`.** Sin ese indicador, oxlint termina con codigo `0` aunque emita avisos, de modo que solo una violacion declarada como `error` en la configuracion —hoy unicamente `react/rules-of-hooks`— podia hacer fallar el comando: un `debugger` o una variable sin usar lo habrian pasado en silencio. *Alternativa descartada:* dejarlo como estaba y resolverlo al montar CI, que habria construido el job de lint sobre un comando incapaz de fallar. *Coste asumido:* cualquier aviso nuevo rompe la construccion, que es justamente lo que se busca. Verificado por mutacion: con el arbol limpio sale `0`, con un unico aviso introducido a proposito sale `1`.
+- El chequeo de tipos no necesita configuracion adicional: TypeScript 6 aplica el modo estricto por defecto, y se comprobo empiricamente que `strictNullChecks`, `noImplicitAny` y el acceso a propiedades opcionales fallan la construccion. Los `tsconfig` no declaran `strict` y aun asi rige, asi que leer el archivo no basta para saberlo.
+
 ## 7. Seguridad y alcance
 
 - No se versionan contraseñas, claves, tokens ni archivos `.env`; `.env.example` contiene solo nombres y valores locales no sensibles.
