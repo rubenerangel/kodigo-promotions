@@ -9,7 +9,27 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * The types the casts below produce at runtime.
+ *
+ * Eloquent resolves them dynamically, so without this block static analysis
+ * reads every attribute as the string the column holds and reports comparing
+ * a status against its enum as always false. Declaring them is the missing
+ * information, not a way to quiet the analyser.
+ *
+ * @property int $id
+ * @property string $name
+ * @property int|null $product_id
+ * @property int|null $category_id
+ * @property DiscountType $discount_type
+ * @property string $discount_value
+ * @property Carbon $start_date
+ * @property Carbon $end_date
+ * @property PromotionStatus $status
+ * @property-read Product|Category|null $target
+ */
 class Promotion extends Model
 {
     /** @use HasFactory<PromotionFactory> */
@@ -69,7 +89,10 @@ class Promotion extends Model
      * Declared as an accessor rather than a relation method: Eloquent would
      * try to resolve a `target()` method as a relationship and fail.
      *
-     * @return Attribute<Product|Category|null, never>
+     * The generic parameters are left to inference. Restating them here made
+     * static analysis compare an invariant template against itself and report
+     * a mismatch between two identical types; the closure already carries the
+     * information, and the reader gets it from the @property-read entry above.
      */
     protected function target(): Attribute
     {

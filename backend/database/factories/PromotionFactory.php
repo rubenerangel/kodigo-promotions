@@ -99,7 +99,7 @@ class PromotionFactory extends Factory
     public function forProduct(?Product $product = null): static
     {
         return $this->state(fn (array $attributes): array => [
-            'product_id' => $product?->id ?? Product::factory(),
+            'product_id' => $product->id ?? Product::factory(),
             'category_id' => null,
         ]);
     }
@@ -110,7 +110,7 @@ class PromotionFactory extends Factory
     public function forCategory(?Category $category = null): static
     {
         return $this->state(fn (array $attributes): array => [
-            'category_id' => $category?->id ?? Category::factory(),
+            'category_id' => $category->id ?? Category::factory(),
             'product_id' => null,
         ]);
     }

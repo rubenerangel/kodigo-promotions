@@ -227,6 +227,27 @@ class ApiErrorMappingTest extends TestCase
     }
 
     /**
+     * The envelope belongs to the API and must not spread beyond it.
+     *
+     * The renderer bails out early for any path outside api/*, and this is the
+     * only test that walks that branch. Without it, inverting the guard would
+     * go unnoticed until some route that answers a shape of its own started
+     * replying with an API error body instead.
+     */
+    public function test_a_route_outside_the_api_keeps_the_framework_answer(): void
+    {
+        $response = $this->getJson('/a-route-that-does-not-exist');
+
+        $response->assertNotFound();
+
+        $this->assertArrayNotHasKey(
+            'error',
+            (array) $response->json(),
+            'The API error envelope leaked outside api/*.',
+        );
+    }
+
+    /**
      * A state conflict carries no per field detail, so the key must be absent
      * rather than present and empty.
      *
