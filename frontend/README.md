@@ -1,32 +1,27 @@
-# React + TypeScript + Vite
+# Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Interfaz web de gestión de promociones: React 19, TypeScript y Vite.
 
-Currently, two official plugins are available:
+La documentación del proyecto completo, incluidos los requisitos previos, el arranque con Docker y las decisiones de diseño, está en el [README de la raíz](../README.md) y en [DECISIONS.md](../DECISIONS.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Comandos
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+pnpm install
+pnpm dev      # servidor de desarrollo en http://localhost:5173
+pnpm build    # comprobación de tipos con tsc y build de producción
+pnpm lint     # oxlint
+pnpm preview  # sirve el build de producción
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Variables de entorno
+
+`VITE_API_URL` apunta a la API. Su valor por defecto es `http://localhost:8000/api`, definido en `src/services/api.ts`. Para sobreescribirlo en local, crea `frontend/.env.local`.
+
+Vite incrusta esta variable **en tiempo de construcción**, así que cambiarla exige reconstruir: `pnpm build`, o `docker compose build frontend` si trabajas con el stack en contenedores.
+
+## Convenciones
+
+- Todo el texto visible sale del catálogo en `src/copy/es.ts`. Los mensajes de error de la API llegan en inglés y no se muestran nunca: se traducen a partir de su `code`. El motivo está registrado en `DECISIONS.md`.
+- Los colores, espaciados y radios salen de las variables de `src/styles/tokens.css`.
+- Ningún estado se comunica solo por color: siempre lleva texto que lo acompañe.

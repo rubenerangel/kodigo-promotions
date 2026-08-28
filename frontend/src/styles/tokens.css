@@ -1,0 +1,81 @@
+/*
+ * Design tokens.
+ *
+ * Every colour, space and size the interface uses is named here, so a value is
+ * changed in one place and the whole screen follows. The status colours matter
+ * most: the listing (task 5.2) shows the same three states, and reading them
+ * from these variables is what keeps a SCHEDULED counter and a SCHEDULED row
+ * the same colour instead of two colours that merely started out alike.
+ *
+ * Colour is never the only carrier of meaning here. Each status token comes
+ * with a surface and a text pair, and every place that uses one also prints
+ * the status name, so the screen still reads correctly without colour.
+ */
+:root {
+  /* Declared explicitly: the interface only ships a light palette, and
+     without this the browser would render form controls and scrollbars dark
+     for a user whose system asks for dark, against a light page. */
+  color-scheme: light;
+
+  /* Surfaces and text */
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f1f3f6;
+  --color-border: #dfe3e8;
+  --color-border-strong: #c2c9d1;
+  --color-text: #16202c;
+  --color-text-muted: #5b6875;
+
+  --color-accent: #1d4ed8;
+  --color-accent-contrast: #ffffff;
+
+  /* Status palette. Each pair is a readable text colour over its surface. */
+  --color-status-scheduled: #1d4ed8;
+  --color-status-scheduled-surface: #eff5ff;
+  --color-status-active: #15803d;
+  --color-status-active-surface: #ecfdf3;
+  --color-status-finished: #475569;
+  --color-status-finished-surface: #f1f5f9;
+
+  /* Deliberately outside the status palette: "valid today" is not a fourth
+     status, and giving it a family of its own is half of how the screen says
+     so. The other half is the sentence next to it. */
+  --color-validity: #6d28d9;
+  --color-validity-surface: #f6f3ff;
+
+  --color-danger: #b42318;
+  --color-danger-surface: #fef3f2;
+  --color-danger-border: #f3c1bc;
+  --color-danger-strong: #93231a;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* Radii */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Typography */
+  --font-sans: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-size-sm: 0.8125rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-counter: 2.75rem;
+  --line-height-tight: 1.15;
+  --line-height-base: 1.5;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 4%);
+
+  /* Width the shell settles at on a wide screen. */
+  --layout-max-width: 72rem;
+}

@@ -1,0 +1,72 @@
+.counter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  background: var(--counter-surface);
+  border: 1px solid var(--color-border);
+  /* The colour lives on one edge rather than washing the whole card, so the
+     number keeps its contrast against a near white surface. */
+  border-left: 4px solid var(--counter-accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.counter--scheduled {
+  --counter-accent: var(--color-status-scheduled);
+  --counter-surface: var(--color-status-scheduled-surface);
+}
+
+.counter--active {
+  --counter-accent: var(--color-status-active);
+  --counter-surface: var(--color-status-active-surface);
+}
+
+.counter--finished {
+  --counter-accent: var(--color-status-finished);
+  --counter-surface: var(--color-status-finished-surface);
+}
+
+.counter--validity {
+  --counter-accent: var(--color-validity);
+  --counter-surface: var(--color-validity-surface);
+  /* Dashed, unlike the three solid status cards: the difference is visible
+     before the label is read, and survives being seen in greyscale. */
+  border-style: dashed;
+  border-left-style: solid;
+}
+
+.counter__value {
+  display: block;
+  font-size: var(--font-size-counter);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--counter-accent);
+}
+
+/*
+ * Same box as the number it stands in for: one line at the counter's font size
+ * and line height. The card is therefore exactly as tall while loading as it
+ * is once the count arrives, and nothing below it shifts.
+ */
+.counter__value--placeholder {
+  width: 2.5ch;
+  height: calc(var(--font-size-counter) * var(--line-height-tight));
+  border-radius: var(--radius-sm);
+  background: var(--counter-accent);
+  opacity: 0.15;
+  animation: counter-placeholder-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes counter-placeholder-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.counter__label {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}

@@ -1,0 +1,69 @@
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.summary__title {
+  font-size: var(--font-size-xl);
+}
+
+.summary__groups {
+  display: grid;
+  /* The three status counters take the room; the single validity counter sits
+     apart in its own column so the split is visible before anything is read. */
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.summary__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.summary__group--validity {
+  padding-left: var(--space-5);
+  border-left: 1px solid var(--color-border-strong);
+}
+
+.summary__group-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.summary__grid {
+  display: grid;
+  /* auto-fit rather than a fixed count: three columns where there is room,
+     one at 375px, with no breakpoint of its own. */
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: var(--space-4);
+}
+
+.summary__grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.summary__hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+@media (max-width: 60rem) {
+  .summary__groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .summary__group--validity {
+    padding-left: 0;
+    padding-top: var(--space-5);
+    border-left: none;
+    border-top: 1px solid var(--color-border-strong);
+  }
+}
