@@ -255,5 +255,19 @@ jobs:
         if: failure()
         run: docker compose logs --no-color --tail 200
 
-      # TODO(6.6): ejecutar `docker compose down` siempre, tambien si el job
-      # falla antes de llegar al final.
+      # `always()` y no `success()`: un fallo a mitad es justo cuando queda algo
+      # levantado, asi que condicionarlo al exito lo apagaria solo cuando ya no
+      # hacia falta. Va el ultimo a proposito, despues del volcado de logs: al
+      # reves, `docker compose logs` no encontraria contenedores de los que leer.
+      #
+      # POR QUE `-v` Y NO UN `down` A SECAS.
+      #
+      # En un runner de GitHub la maquina se destruye al terminar y esto sobra.
+      # Sirve en uno autoalojado, donde el volumen `postgres-data` sobrevive
+      # entre ejecuciones: la siguiente arrancaria sobre los datos de la
+      # anterior y dejaria de comprobar lo unico que este trabajo comprueba, que
+      # el stack se levanta desde cero. Un smoke test que solo funciona la
+      # primera vez es peor que no tenerlo, porque nadie se entera.
+      - name: Apagar el stack
+        if: always()
+        run: docker compose down -v --remove-orphans
