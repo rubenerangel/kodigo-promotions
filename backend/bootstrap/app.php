@@ -1,15 +1,23 @@
 <?php
 
+use App\Http\Controllers\HealthController;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            // Registered outside the web group on purpose: monitoring polls
+            // this endpoint continuously, and the session middleware would
+            // start and persist a session on every single poll.
+            Route::get('/health', HealthController::class);
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         //
