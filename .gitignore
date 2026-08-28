@@ -1,8 +1,6 @@
 .claude/
 .github/
 openspec/
-CGPT-PLAN_IMPLEMENTACION_PRUEBA_TECNICA.md
-prueba técnica.md
 workflow.md
 .env
 .env.*
@@ -12,12 +10,14 @@ workflow.md
 /vendor/
 backend/vendor/
 backend/storage/*.key
-backend/storage/logs/
-backend/storage/framework/cache/
-backend/storage/framework/sessions/
-backend/storage/framework/testing/
-backend/storage/framework/views/
-backend/bootstrap/cache/
+
+# El contenido de storage y de bootstrap/cache lo ignora el propio Laravel,
+# mediante un .gitignore dentro de cada directorio que dice "todo menos yo".
+# Aqui se ignoraban esos directorios enteros, que es distinto: el contenido
+# quedaba fuera, pero tambien los .gitignore que los sostienen, asi que un clon
+# limpio no tenia storage/framework ni bootstrap/cache y la aplicacion no
+# arrancaba en local. En el contenedor no se notaba porque el Dockerfile los
+# crea al construir la imagen.
 
 # Node and frontend build output
 node_modules/
